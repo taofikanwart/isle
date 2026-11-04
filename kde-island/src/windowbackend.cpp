@@ -7,6 +7,7 @@
 #include <QDebug>
 #include <QGuiApplication>
 #include <QScreen>
+#include <X11/Xlib.h>
 
 #ifdef HAVE_LAYERSHELL
 #include <LayerShellQt/Shell>
@@ -54,6 +55,8 @@ void WindowBackend::attach() {
         // everything, unmanaged, and never taking focus from the user.
         // Qt::WindowDoesNotAcceptFocus removed so text inputs (reminders,
         // search, assistant chat) can receive keystrokes.
+        // Keep X11BypassWindowManagerHint so the window sits at y=0 over the top bar
+        // without KWin reparenting it under panels.
         m_window->setFlags(Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint |
                            Qt::X11BypassWindowManagerHint);
     }
@@ -85,6 +88,22 @@ bool WindowBackend::pointerInside(int x, int y, int width, int height) const {
 void WindowBackend::requestFrame() {
     if (m_window)
         m_window->requestUpdate();
+}
+
+void WindowBackend::grabKeyboardFocus() {
+    if (!m_window)
+        return;
+    m_window->requestActivate();
+    if (m_pointerQueryable) {
+        // On X11, an override-redirect window is bypassed by the window manager,
+        // so XSetInputFocus must be called directly to direct keystrokes to it.
+        Display *dpy = XOpenDisplay(nullptr);
+        if (dpy) {
+            XSetInputFocus(dpy, (::Window)m_window->winId(), RevertToParent, CurrentTime);
+            XFlush(dpy);
+            XCloseDisplay(dpy);
+        }
+    }
 }
 
 void WindowBackend::setInputMask(int x, int y, int width, int height) {

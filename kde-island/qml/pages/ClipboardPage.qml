@@ -37,6 +37,7 @@ Item {
                 color: Qt.rgba(1, 1, 1, 0.07)
 
                 TextInput {
+                TapHandler { onTapped: backend.grabKeyboardFocus() }
                     id: searchInput
                     anchors.fill: parent
                     anchors.leftMargin: 10

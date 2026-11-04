@@ -48,6 +48,9 @@ public:
     // Asks for one more frame; the frame clock only ticks when one is painted.
     Q_INVOKABLE void requestFrame();
 
+    // Forces keyboard focus onto this window (X11 override-redirect workaround)
+    Q_INVOKABLE void grabKeyboardFocus();
+
 signals:
     void insetChanged();
 

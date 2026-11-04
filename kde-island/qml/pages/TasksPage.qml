@@ -100,6 +100,7 @@ Item {
             color: Qt.rgba(1, 1, 1, 0.06)
 
             TextInput {
+                TapHandler { onTapped: backend.grabKeyboardFocus() }
                 id: input
                 anchors.fill: parent
                 anchors.leftMargin: 12
