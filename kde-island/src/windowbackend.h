@@ -1,0 +1,52 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Copyright (C) 2026 zickrian
+
+#pragma once
+
+#include <QObject>
+#include <QRegion>
+#include <QWindow>
+
+// Where the island's window sits and what part of it takes clicks. The two
+// sessions need different machinery, so the rest of the app only ever sees
+// this interface: on Wayland the window is a layer-shell surface pinned to
+// the top edge; on X11 it is an unmanaged, always-on-top window.
+//
+// The window is always as big as the expanded island. Everything outside the
+// notch is masked away so clicks reach whatever is underneath.
+class WindowBackend : public QObject {
+    Q_OBJECT
+    // How far the panel pushes the usable screen down at the top edge.
+    Q_PROPERTY(int topInset READ topInset NOTIFY insetChanged)
+    Q_PROPERTY(quintptr windowId READ windowId CONSTANT)
+    // Isle's default: the closed island sits inside the top bar like a notch.
+    Q_PROPERTY(bool inBar READ inBar CONSTANT)
+
+public:
+    explicit WindowBackend(QWindow *window, QObject *parent = nullptr);
+
+    // Called once, before the window is shown.
+    void attach();
+
+    int topInset() const { return m_topInset; }
+    quintptr windowId() const;
+    bool inBar() const { return m_inBar; }
+
+    bool layerShell() const { return m_layerShell; }
+
+    // The island's shape in window coordinates; everything outside passes
+    // clicks through. Called every frame while the island animates.
+    Q_INVOKABLE void setInputMask(int x, int y, int width, int height);
+
+signals:
+    void insetChanged();
+
+private:
+    void measureInset();
+
+    QWindow *m_window;
+    QRegion m_mask;
+    int m_topInset = 0;
+    bool m_inBar = true;
+    bool m_layerShell = false;
+};

@@ -1,0 +1,10 @@
+<RCC>
+    <qresource prefix="/">
+        <file>Island.qml</file>
+        <file>NotchShape.qml</file>
+        <file>Icon.qml</file>
+        <file>Theme.js</file>
+        <file>pages/MediaPage.qml</file>
+        <file alias="fonts/InterVariable.ttf">../../data/fonts/InterVariable.ttf</file>
+    </qresource>
+</RCC>
