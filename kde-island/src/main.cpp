@@ -5,12 +5,26 @@
 #include "spring.h"
 #include "windowbackend.h"
 
+#include <QDateTime>
 #include <QDBusConnection>
+#include <QDebug>
 #include <QFontDatabase>
 #include <QGuiApplication>
 #include <QQmlContext>
 #include <QQuickView>
 #include <QScreen>
+
+// Carries the render loop's delta to QML: signals beat QMetaObject calls and
+// keep the springs out of QML's own timer machinery.
+class FrameClock : public QObject {
+    Q_OBJECT
+
+public:
+    void tick(qreal dt) { emit ticked(dt); }
+
+signals:
+    void ticked(qreal dt);
+};
 
 namespace {
 // Room for the expanded island plus its shoulders and drop shadow.
@@ -68,10 +82,29 @@ int main(int argc, char *argv[]) {
         qEnvironmentVariable("ISLE_THEME", "black"));
     view.rootContext()->setContextProperty(QStringLiteral("backend"), &backend);
 
+    // Must exist before the QML is created: a context property added later is
+    // invisible to items already instantiated.
+    FrameClock frames;
+    view.rootContext()->setContextProperty(QStringLiteral("frames"), &frames);
+
     view.setSource(QUrl(QStringLiteral("qrc:/Island.qml")));
     if (view.rootObject() == nullptr)
         return 1;
 
+    // One spring step per painted frame, with the frame's own delta: the
+    // frame clock Isle uses through Clutter, on Qt's render loop.
+    qint64 lastFrame = 0;
+    QObject::connect(&view, &QQuickWindow::frameSwapped, [&frames, lastFrame]() mutable {
+        const qint64 now = QDateTime::currentMSecsSinceEpoch();
+        const qreal dt = lastFrame == 0 ? 1.0 / 60.0 : (now - lastFrame) / 1000.0;
+        lastFrame = now;
+        if (qEnvironmentVariableIsSet("ISLE_TRACE"))
+            qInfo("F %lld", now);
+        frames.tick(dt);
+    });
+
     view.show();
     return app.exec();
 }
+
+#include "main.moc"

@@ -17,6 +17,10 @@ class Spring : public QObject {
     Q_PROPERTY(qreal target READ target WRITE setTarget NOTIFY targetChanged)
     Q_PROPERTY(qreal stiffness MEMBER m_stiffness)
     Q_PROPERTY(qreal damping MEMBER m_damping)
+    // Stepped by the window's frame clock instead of a timer, so one step is
+    // exactly one painted frame: a 16 ms timer beats against a 60 Hz vsync and
+    // drops a frame whenever the two drift.
+    Q_PROPERTY(bool drivenByFrames READ drivenByFrames WRITE setDrivenByFrames)
 
 public:
     explicit Spring(QObject *parent = nullptr);
@@ -27,11 +31,20 @@ public:
     void setTarget(qreal target);
     Q_INVOKABLE void reset(qreal value);
 
+    bool drivenByFrames() const { return m_drivenByFrames; }
+    void setDrivenByFrames(bool driven) { m_drivenByFrames = driven; }
+
+    // One step of `dt` seconds, from the frame clock.
+    Q_INVOKABLE void advance(qreal dt);
+
     bool settled() const;
 
 signals:
     void valueChanged();
     void targetChanged();
+    // A frame is needed to start moving (the frame clock only ticks when one
+    // is painted).
+    void wake();
 
 private:
     void tick();
@@ -47,6 +60,7 @@ private:
     qreal m_value = 0;
     qreal m_target = 0;
     qreal m_velocity = 0;
+    bool m_drivenByFrames = false;
     QTimer m_timer;
     QElapsedTimer m_clock;
 };

@@ -8,8 +8,9 @@
 
 Spring::Spring(QObject *parent)
     : QObject(parent) {
-    // ~120 Hz; the integrator substeps to MAX_STEP regardless of frame time.
-    m_timer.setInterval(8);
+    // The display refreshes at 60 Hz; ticking faster only queues updates the
+    // compositor throws away, and each one costs a shape change.
+    m_timer.setInterval(16);
     connect(&m_timer, &QTimer::timeout, this, &Spring::tick);
 }
 
@@ -23,7 +24,11 @@ void Spring::setTarget(qreal target) {
         return;
     m_target = target;
     emit targetChanged();
-    if (!settled()) {
+    if (settled())
+        return;
+    if (m_drivenByFrames)
+        emit wake();
+    else {
         m_clock.start();
         m_timer.start();
     }
@@ -33,6 +38,25 @@ void Spring::reset(qreal value) {
     m_value = m_target = value;
     m_velocity = 0;
     m_timer.stop();
+    emit valueChanged();
+}
+
+void Spring::advance(qreal dt) {
+    if (settled())
+        return;
+    qreal remaining = std::clamp(dt, 0.0, MAX_FRAME);
+    while (remaining > 0 && !settled()) {
+        const qreal h = std::min(remaining, MAX_STEP);
+        const qreal acceleration =
+            -m_stiffness * (m_value - m_target) - m_damping * m_velocity;
+        m_velocity += acceleration * h;
+        m_value += m_velocity * h;
+        remaining -= h;
+    }
+    if (settled()) {
+        m_value = m_target;
+        m_velocity = 0;
+    }
     emit valueChanged();
 }
 

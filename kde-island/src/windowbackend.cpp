@@ -3,6 +3,8 @@
 
 #include "windowbackend.h"
 
+#include <QCursor>
+#include <QDebug>
 #include <QGuiApplication>
 #include <QScreen>
 
@@ -16,6 +18,11 @@ WindowBackend::WindowBackend(QWindow *window, QObject *parent)
     connect(m_window, &QWindow::screenChanged, this, &WindowBackend::measureInset);
     // ISLE_IN_BAR=0 hangs the closed island below the bar instead.
     m_inBar = qEnvironmentVariable("ISLE_IN_BAR", "1") != QLatin1String("0");
+    // Wayland does not let a client read the global pointer.
+    const bool wayland =
+        qgetenv("XDG_SESSION_TYPE") == QByteArrayLiteral("wayland") ||
+        !qgetenv("WAYLAND_DISPLAY").isEmpty();
+    m_pointerQueryable = !wayland;
 }
 
 quintptr WindowBackend::windowId() const {
@@ -68,12 +75,25 @@ void WindowBackend::measureInset() {
     emit insetChanged();
 }
 
+bool WindowBackend::pointerInside(int x, int y, int width, int height) const {
+    if (!m_window || !m_pointerQueryable)
+        return false;
+    return QRect(x, y, width, height).contains(QCursor::pos() - m_window->position());
+}
+
+void WindowBackend::requestFrame() {
+    if (m_window)
+        m_window->requestUpdate();
+}
+
 void WindowBackend::setInputMask(int x, int y, int width, int height) {
     if (!m_window || width <= 0 || height <= 0)
         return;
     const QRegion region(x, y, width, height);
     if (region == m_mask)
         return;
+    if (qEnvironmentVariableIsSet("ISLE_TRACE"))
+        qInfo("setInputMask %d,%d %dx%d", x, y, width, height);
     m_mask = region;
     // On Wayland Qt maps this to the surface's input region, so the masked
     // parts stay visible but ignore the pointer.

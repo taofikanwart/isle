@@ -41,7 +41,34 @@ Item {
         ? topInset : topInset + notchDepth
     readonly property real openHeight: topInset + pageHeight + bottomPadding
 
-    property bool open: hover.hovered
+    // Opened by the pointer resting on the notch. Where the global pointer can
+    // be read (X11) a poll decides, because changing the window's shape makes
+    // X send a leave and hover events alone would drop it mid-animation. On
+    // Wayland the handler is all there is.
+    property bool pointerIn: false
+    property bool open: backend.pointerQueryable ? pointerIn : hover.hovered
+
+    Timer {
+        interval: 50
+        running: backend.pointerQueryable
+        repeat: true
+        onTriggered: root.pollPointer()
+    }
+
+    function pollPointer() {
+        if (!backend.pointerQueryable)
+            return;
+        // A few pixels of slack, so the edge is not a razor: the pointer may
+        // leave the drawn shape by a hair without closing it.
+        var margin = 6;
+        var body = open ? expandedWidth : closedWidth;
+        var height = open ? openHeight : closedHeight;
+        var shoulder = open ? expandedShoulder : compactShoulder;
+        var total = Math.round(body + 2 * shoulder);
+        var x = Math.round((root.width - total) / 2);
+        root.pointerIn = backend.pointerInside(x - margin, 0,
+                                               total + 2 * margin, Math.round(height + margin));
+    }
 
     // Drives the clock; a new Date each second so the text re-evaluates.
     property var now: new Date()
@@ -56,17 +83,21 @@ Item {
         (springWidth.value - closedWidth) / Math.max(1, expandedWidth - closedWidth)))
 
     // --- springs -----------------------------------------------------------
+    // Stepped from the render loop (main.cpp calls advanceIsland), so the
+    // motion is measured in painted frames rather than timer ticks.
     Spring {
         id: springWidth
+        drivenByFrames: true
+        onWake: backend.requestFrame()
         Component.onCompleted: reset(root.closedWidth)
         target: root.open ? root.expandedWidth : root.closedWidth
-        onValueChanged: root.syncMask()
     }
     Spring {
         id: springHeight
+        drivenByFrames: true
+        onWake: backend.requestFrame()
         Component.onCompleted: reset(root.closedHeight)
         target: root.open ? root.openHeight : root.closedHeight
-        onValueChanged: root.syncMask()
     }
     Spring {
         id: springRadius
@@ -79,7 +110,18 @@ Item {
         damping: 25
         Component.onCompleted: reset(root.compactShoulder)
         target: root.open ? root.expandedShoulder : root.compactShoulder
-        onValueChanged: root.syncMask()
+    }
+
+    Connections {
+        target: frames
+        function onTicked(dt) { root.advanceIsland(dt) }
+    }
+
+    function advanceIsland(dt) {
+        springWidth.advance(dt);
+        springHeight.advance(dt);
+        springRadius.advance(dt);
+        springShoulder.advance(dt);
     }
 
     // --- the notch ---------------------------------------------------------
@@ -87,32 +129,75 @@ Item {
         id: notch
         anchors.horizontalCenter: parent.horizontalCenter
         y: 0
+        width: roomWidth
+        height: roomHeight
         bodyWidth: springWidth.value
         bodyHeight: springHeight.value
         radius: springRadius.value
         shoulder: springShoulder.value
         themeName: root.themeName
         tint: root.tint
+    }
+
+    // The pointer follows the state's size, not the frame's: a region that
+    // shrinks under the pointer would make it leave and the island flicker.
+    Item {
+        id: hoverArea
+        anchors.horizontalCenter: parent.horizontalCenter
+        y: 0
+        width: open ? expandedWidth : closedWidth
+        height: open ? openHeight : closedHeight
 
         HoverHandler { id: hover }
     }
 
     // Everything outside the notch passes clicks through; the expanded page
     // keeps its own band so it stays clickable.
-    function syncMask() {
-        if (!notch)
-            return;
-        backend.setInputMask(Math.round(notch.x), 0,
-                             Math.round(notch.width), Math.round(notch.height));
+    //
+    // Only transitions change the mask, not every spring frame: on X11 each
+    // change is a synchronous shape update, and one per frame is what made
+    // the hover stutter. During a transition the mask is the target's band,
+    // which is a superset of the island at any point in it, so nothing the
+    // island draws is ever cut.
+    property bool maskExpanded: false
+
+    function applyMask(expanded) {
+        var bodyWidth = expanded ? root.expandedWidth : root.closedWidth;
+        var bodyHeight = expanded ? root.openHeight : root.closedHeight;
+        var shoulder = expanded ? root.expandedShoulder : root.compactShoulder;
+        var total = Math.round(bodyWidth + 2 * shoulder);
+        backend.setInputMask(Math.round((root.width - total) / 2), 0,
+                             total, Math.round(bodyHeight));
+        root.maskExpanded = expanded;
     }
-    onTopInsetChanged: syncMask()
+
+    // A close keeps the wide mask until the island has shrunk back into it.
+    Timer {
+        id: shrink
+        interval: 620
+        onTriggered: root.applyMask(false)
+    }
+
+    onOpenChanged: {
+        if (open) {
+            shrink.stop();
+            applyMask(true);
+        } else {
+            shrink.restart();
+        }
+    }
     // Before the view sizes the root item, the notch has no place on screen;
     // the first real size is the one that matters.
-    onWidthChanged: syncMask()
-    onHeightChanged: syncMask()
+    onWidthChanged: applyMask(root.maskExpanded)
+    onTopInsetChanged: applyMask(root.maskExpanded)
+    // The closed island widens for a song.
+    onClosedWidthChanged: {
+        if (!open && !shrink.running)
+            applyMask(false);
+    }
     Component.onCompleted: {
         Theme.setTheme(root.themeName, root.tint);
-        syncMask();
+        applyMask(false);
     }
 
     // --- content -----------------------------------------------------------
@@ -120,7 +205,7 @@ Item {
     // start below the band the top bar occupies.
     Item {
         id: body
-        x: notch.x + Math.max(0, springShoulder.value)
+        x: Math.round((root.width - Math.max(0, springWidth.value)) / 2)
         y: 0
         width: Math.max(0, springWidth.value)
         height: Math.max(0, springHeight.value)

@@ -5,6 +5,10 @@
 // at the top edge through two shoulders, the way a notch meets the screen.
 // Geometry is ported from gnome-extension/src/glass.js (the ShapeMask shader)
 // and island.js `_box`.
+//
+// The canvas keeps the expanded size and the body is drawn inside it, centred
+// and pinned to the top. Resizing a Canvas reallocates its backing texture,
+// which once per frame is what made the hover stutter.
 
 import QtQuick 2.15
 import "Theme.js" as Theme
@@ -21,8 +25,14 @@ Item {
     property string themeName: "black"
     property int tint: 0
 
-    width: bodyWidth + 2 * Math.max(0, shoulder)
-    height: bodyHeight
+    // The largest the notch ever gets (expanded tall plus its overshoot);
+    // the canvas never resizes, and every pixel it holds is cleared and
+    // painted on each frame of an animation.
+    readonly property real roomWidth: 600 + 2 * 22
+    readonly property real roomHeight: 240
+
+    implicitWidth: roomWidth
+    implicitHeight: roomHeight
 
     onBodyWidthChanged: canvas.requestPaint()
     onBodyHeightChanged: canvas.requestPaint()
@@ -40,15 +50,19 @@ Item {
             ctx.reset();
 
             var s = Math.max(0, shape.shoulder);
-            var r = Math.min(shape.radius, shape.bodyWidth / 2, shape.bodyHeight);
-            var left = s;
-            var right = s + shape.bodyWidth;
-            var bottom = shape.bodyHeight;
+            var bodyWidth = Math.max(0, shape.bodyWidth);
+            var bodyHeight = Math.max(0, shape.bodyHeight);
+            var r = Math.min(shape.radius, bodyWidth / 2, bodyHeight);
+
+            // Centred, pinned to the top: the body grows out from the middle.
+            var left = Math.round((shape.width - bodyWidth) / 2);
+            var right = left + bodyWidth;
+            var bottom = bodyHeight;
 
             ctx.beginPath();
-            ctx.moveTo(0, 0);
+            ctx.moveTo(left - s, 0);
             if (s > 0)
-                ctx.arc(0, s, s, -Math.PI / 2, 0, false);
+                ctx.arc(left - s, s, s, -Math.PI / 2, 0, false);
             ctx.lineTo(left, bottom - r);
             ctx.arcTo(left, bottom, left + r, bottom, r);
             ctx.lineTo(right - r, bottom);
@@ -58,15 +72,10 @@ Item {
                 ctx.arc(right + s, s, s, Math.PI, Math.PI * 1.5, false);
             ctx.closePath();
 
-            // The fill, with a soft shadow so the island sits above whatever
-            // it covers.
-            ctx.save();
-            ctx.shadowColor = "rgba(0,0,0,0.45)";
-            ctx.shadowBlur = 18;
-            ctx.shadowOffsetY = 6;
+            // No drop shadow: the island is flush with the top edge, and a
+            // blurred shadow here costs a CPU blur on every animation frame.
             ctx.fillStyle = Theme.css(Theme.fill());
             ctx.fill();
-            ctx.restore();
 
             // A sheen: light from above, fading out over the body.
             var sheen = ctx.createLinearGradient(0, 0, 0, bottom);
