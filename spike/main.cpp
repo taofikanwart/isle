@@ -11,12 +11,15 @@
 #include <QDBusConnection>
 #include <QDBusInterface>
 #include <QDBusReply>
+#include <QElapsedTimer>
 #include <QGuiApplication>
 #include <QQmlContext>
 #include <QQuickItem>
 #include <QQuickView>
 #include <QRegion>
+#include <QScreen>
 #include <QTimer>
+#include <algorithm>
 #include <cmath>
 
 #ifdef HAVE_LAYERSHELL

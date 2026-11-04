@@ -31,19 +31,27 @@ always-on-top window. The QML shows which path is active.
 
 ## Pass criteria
 
-| # | Test | Pass when | Status |
-|---|------|-----------|--------|
-| 1 | Stacking | The notch shows **above the Plasma panel**, top centre, not clipped | ☐ |
-| 2 | Click-through | Clicks 2 px outside the notch reach the panel/app underneath | ☐ |
-| 3 | Hover + spring | Pointer in/out opens/closes with the spring, no flicker at the edge | ☐ |
-| 4 | Glass | The translucent notch reads as glass over any wallpaper, no KWin blur | ☐ |
-| 5 | D-Bus | The open notch shows `Media1.NowPlaying` and ▶❙❙ toggles playback | ☐ |
+| # | Test | Pass when | X11 | Wayland |
+|---|------|-----------|-----|---------|
+| 1 | Stacking | The notch shows **above the Plasma panel**, top centre, not clipped | ✅ | ☐ |
+| 2 | Click-through | Clicks 2 px outside the notch reach the panel/app underneath | ✅ | ☐ |
+| 3 | Hover + spring | Pointer in/out opens/closes with the spring, no flicker at the edge | ✅ | ☐ |
+| 4 | Glass | The translucent notch reads as glass over any wallpaper, no KWin blur | ✅* | ☐ |
+| 5 | D-Bus | The open notch shows `Media1.NowPlaying` and ▶❙❙ toggles playback | ✅** | ☐ |
+
+\* Renders fine; the spike's look is a placeholder, the real design comes in
+phase 2 from `gnome-extension/src/{island,glass,shader}.js`.
+\*\* Contract proven over `busctl` and `verify-caller-patch.py`; the in-UI
+play/pause test still needs an MPRIS player running.
 
 Also note: panel at top vs bottom, multi-monitor, fractional scaling.
 
 ## Verdict
 
-Fill in after testing on a real Plasma Wayland session:
-
-- Result: _pending_
-- Decision: _pending_ (layer-shell architecture / plasmoid fallback)
+- X11 (Plasma 5.27, 2026-11-04): criteria 1–3 pass on the fallback path
+  (`Qt::X11BypassWindowManagerHint` + input mask). Hover and spring feel
+  right; clicks outside the notch pass through.
+- Wayland: _pending_ — needs a login into a Plasma Wayland session, then
+  `./build/isle-spike` again. This is the test that decides the
+  architecture (layer-shell vs plasmoid fallback).
+- Decision: _pending Wayland result_
