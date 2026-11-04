@@ -13,19 +13,25 @@ import "Theme.js" as Theme
 Item {
     id: root
 
-    // --- theme -------------------------------------------------------------
-    property string themeName: initialTheme
-    property int tint: 0
+    // --- theme & settings --------------------------------------------------
+    property string themeName: daemon.themeName
+    property int tint: daemon.glassTint
+
+    Connections {
+        target: daemon
+        function onSettingsChanged() {
+            Theme.setTheme(daemon.themeName, daemon.glassTint);
+            notch.themeName = daemon.themeName;
+            notch.tint = daemon.glassTint;
+        }
+    }
 
     // --- ported constants --------------------------------------------------
-    // Isle's default is the closed island *inside* the top bar, like a notch:
-    // IN_BAR_RADIUS / IN_BAR_SHOULDER. Set ISLE_IN_BAR=0 to hang it below
-    // the bar instead (COMPACT_RADIUS / COMPACT_SHOULDER + notch-depth).
-    readonly property bool inBar: backend.inBar
+    readonly property bool inBar: daemon.inBar
     readonly property real compactRadius: inBar ? 10 : 16
     readonly property real compactShoulder: inBar ? 7 : 10
     readonly property real compactWidth: inBar ? 144 : 164
-    readonly property real notchDepth: 30
+    readonly property real notchDepth: daemon.notchDepth
     readonly property real expandedRadius: 32
     readonly property real expandedShoulder: 22
     readonly property real expandedWidth: 600
@@ -33,18 +39,37 @@ Item {
     readonly property real bottomPadding: 20
 
     readonly property int topInset: backend.topInset
-    // A playing song widens the closed island, as the clock alone does not
-    // leave room for it.
-    readonly property real closedWidth: compactWidth + (daemon.playing ? 140 : 0)
-    // With no panel at the top there is no band to sit in; hang it instead.
+
+    // Notification banner alert state (when notch is closed)
+    property bool bannerAlert: false
+    property string bannerSummary: ""
+    property string bannerApp: ""
+
+    Timer {
+        id: bannerTimer
+        interval: 3800
+        onTriggered: root.bannerAlert = false
+    }
+
+    Connections {
+        target: daemon
+        function onNotificationArrived(summary, body, app) {
+            if (!root.open) {
+                root.bannerSummary = summary;
+                root.bannerApp = app;
+                root.bannerAlert = true;
+                bannerTimer.restart();
+            }
+        }
+    }
+
+    // A playing song or running pomodoro or banner alert widens the closed island.
+    readonly property real closedWidth: bannerAlert ? 280
+        : (compactWidth + (daemon.playing ? 140 : 0) + (daemon.pomodoroRunning ? 40 : 0))
     readonly property real closedHeight: (inBar && topInset > 0)
         ? topInset : topInset + notchDepth
     readonly property real openHeight: topInset + pageHeight + bottomPadding
 
-    // Opened by the pointer resting on the notch. Where the global pointer can
-    // be read (X11) a poll decides, because changing the window's shape makes
-    // X send a leave and hover events alone would drop it mid-animation. On
-    // Wayland the handler is all there is.
     property bool pointerIn: false
     property bool open: backend.pointerQueryable ? pointerIn : hover.hovered
 
@@ -58,8 +83,6 @@ Item {
     function pollPointer() {
         if (!backend.pointerQueryable)
             return;
-        // A few pixels of slack, so the edge is not a razor: the pointer may
-        // leave the drawn shape by a hair without closing it.
         var margin = 6;
         var body = open ? expandedWidth : closedWidth;
         var height = open ? openHeight : closedHeight;
@@ -83,8 +106,6 @@ Item {
         (springWidth.value - closedWidth) / Math.max(1, expandedWidth - closedWidth)))
 
     // --- springs -----------------------------------------------------------
-    // Stepped from the render loop (main.cpp calls advanceIsland), so the
-    // motion is measured in painted frames rather than timer ticks.
     Spring {
         id: springWidth
         drivenByFrames: true
@@ -139,8 +160,6 @@ Item {
         tint: root.tint
     }
 
-    // The pointer follows the state's size, not the frame's: a region that
-    // shrinks under the pointer would make it leave and the island flicker.
     Item {
         id: hoverArea
         anchors.horizontalCenter: parent.horizontalCenter
@@ -151,14 +170,6 @@ Item {
         HoverHandler { id: hover }
     }
 
-    // Everything outside the notch passes clicks through; the expanded page
-    // keeps its own band so it stays clickable.
-    //
-    // Only transitions change the mask, not every spring frame: on X11 each
-    // change is a synchronous shape update, and one per frame is what made
-    // the hover stutter. During a transition the mask is the target's band,
-    // which is a superset of the island at any point in it, so nothing the
-    // island draws is ever cut.
     property bool maskExpanded: false
 
     function applyMask(expanded) {
@@ -171,7 +182,6 @@ Item {
         root.maskExpanded = expanded;
     }
 
-    // A close keeps the wide mask until the island has shrunk back into it.
     Timer {
         id: shrink
         interval: 620
@@ -186,11 +196,8 @@ Item {
             shrink.restart();
         }
     }
-    // Before the view sizes the root item, the notch has no place on screen;
-    // the first real size is the one that matters.
     onWidthChanged: applyMask(root.maskExpanded)
     onTopInsetChanged: applyMask(root.maskExpanded)
-    // The closed island widens for a song.
     onClosedWidthChanged: {
         if (!open && !shrink.running)
             applyMask(false);
@@ -201,8 +208,6 @@ Item {
     }
 
     // --- content -----------------------------------------------------------
-    // The body, shoulders excluded: the compact island fills it, the pages
-    // start below the band the top bar occupies.
     Item {
         id: body
         x: Math.round((root.width - Math.max(0, springWidth.value)) / 2)
@@ -211,27 +216,75 @@ Item {
         height: Math.max(0, springHeight.value)
         clip: true
 
-        // Closed: the time, and the song if one is playing.
+        // Closed: the time, activity icons, or banner alert
         Item {
             id: compact
             anchors.fill: parent
             visible: root.progress < 0.5
             opacity: 1 - root.progress * 2
 
+            // Banner alert view
             Row {
                 anchors.centerIn: parent
+                visible: root.bannerAlert
                 spacing: 8
 
+                Rectangle {
+                    width: 14
+                    height: 14
+                    radius: 7
+                    color: "#38bdf8"
+                    anchors.verticalCenter: parent.verticalCenter
+                }
+                Text {
+                    anchors.verticalCenter: parent.verticalCenter
+                    text: root.bannerApp + ":"
+                    color: Qt.rgba(1, 1, 1, 0.7)
+                    font.family: "Inter Variable"
+                    font.pixelSize: 11
+                    font.weight: Font.DemiBold
+                }
+                Text {
+                    anchors.verticalCenter: parent.verticalCenter
+                    width: Math.max(0, Math.min(180, implicitWidth))
+                    elide: Text.ElideRight
+                    text: root.bannerSummary
+                    color: "white"
+                    font.family: "Inter Variable"
+                    font.pixelSize: 11
+                }
+            }
+
+            // Normal compact row
+            Row {
+                anchors.centerIn: parent
+                visible: !root.bannerAlert
+                spacing: 8
+
+                // Pomodoro mini indicator
+                Rectangle {
+                    visible: daemon.pomodoroRunning
+                    width: 12
+                    height: 12
+                    radius: 6
+                    color: "#f97316"
+                    anchors.verticalCenter: parent.verticalCenter
+                }
+
+                // Music art
                 Image {
                     visible: daemon.playing && daemon.artPath !== ""
                     source: daemon.artPath !== "" ? "file://" + daemon.artPath : ""
-                    width: 20
-                    height: 20
+                    width: 18
+                    height: 18
                     fillMode: Image.PreserveAspectCrop
                     asynchronous: true
+                    anchors.verticalCenter: parent.verticalCenter
                 }
 
+                // Clock
                 Text {
+                    anchors.verticalCenter: parent.verticalCenter
                     text: Qt.formatTime(root.now, "hh:mm")
                     color: "white"
                     font.family: "Inter Variable"
@@ -239,15 +292,17 @@ Item {
                     font.weight: Font.DemiBold
                 }
 
+                // Music title
                 Text {
                     visible: daemon.playing
-                    width: Math.max(0, Math.min(140, implicitWidth))
+                    width: Math.max(0, Math.min(130, implicitWidth))
                     elide: Text.ElideRight
                     text: daemon.title !== "" ? daemon.title : "Playing"
                     color: "white"
                     opacity: 0.75
                     font.family: "Inter Variable"
                     font.pixelSize: 11
+                    anchors.verticalCenter: parent.verticalCenter
                 }
             }
         }
@@ -258,14 +313,18 @@ Item {
             "pages/MediaPage.qml",
             "pages/TimerPage.qml",
             "pages/TasksPage.qml",
+            "pages/ClipboardPage.qml",
+            "pages/CalendarPage.qml",
+            "pages/NotificationsPage.qml",
+            "pages/SettingsPage.qml",
         ]
 
-        // --- header row: tabs on the left, clock centered -----------------
+        // --- header row: tabs on the left, clock centered, settings on the right
         Item {
             id: headerRow
-            x: 18
+            x: 16
             y: 0
-            width: body.width - 36
+            width: body.width - 32
             height: root.topInset
             visible: root.progress >= 0.5
             opacity: (root.progress - 0.5) * 2
@@ -274,34 +333,51 @@ Item {
             Row {
                 anchors.left: parent.left
                 anchors.verticalCenter: parent.verticalCenter
-                spacing: 4
+                spacing: 3
 
                 Repeater {
                     model: [
                         { label: "Music", idx: 0 },
                         { label: "Timer", idx: 1 },
                         { label: "Tasks", idx: 2 },
+                        { label: "Clips", idx: 3 },
+                        { label: "Cal", idx: 4 },
+                        { label: "Notifs", idx: 5, badge: daemon.unreadNotificationsCount },
                     ]
 
                     delegate: Rectangle {
-                        width: tabText.implicitWidth + 14
+                        width: tabContent.implicitWidth + 12
                         height: 22
                         radius: 11
                         color: body.pageIndex === modelData.idx
                             ? Qt.rgba(1, 1, 1, 0.16)
                             : (tabTap.pressed ? Qt.rgba(1, 1, 1, 0.08) : "transparent")
 
-                        Text {
-                            id: tabText
+                        Row {
+                            id: tabContent
                             anchors.centerIn: parent
-                            text: modelData.label
-                            color: body.pageIndex === modelData.idx
-                                ? "white"
-                                : Qt.rgba(1, 1, 1, 0.55)
-                            font.family: "Inter Variable"
-                            font.pixelSize: 11
-                            font.weight: body.pageIndex === modelData.idx
-                                ? Font.Medium : Font.Normal
+                            spacing: 4
+
+                            Text {
+                                text: modelData.label
+                                color: body.pageIndex === modelData.idx
+                                    ? "white"
+                                    : Qt.rgba(1, 1, 1, 0.55)
+                                font.family: "Inter Variable"
+                                font.pixelSize: 11
+                                font.weight: body.pageIndex === modelData.idx
+                                    ? Font.Medium : Font.Normal
+                            }
+
+                            // Notification badge dot
+                            Rectangle {
+                                visible: modelData.badge !== undefined && modelData.badge > 0
+                                width: 5
+                                height: 5
+                                radius: 2.5
+                                color: "#38bdf8"
+                                anchors.verticalCenter: parent.verticalCenter
+                            }
                         }
 
                         TapHandler {
@@ -320,6 +396,30 @@ Item {
                 font.family: "Inter Variable"
                 font.pixelSize: 13
                 font.weight: Font.DemiBold
+            }
+
+            // Settings button (gear ⚙) on the right
+            Rectangle {
+                anchors.right: parent.right
+                anchors.verticalCenter: parent.verticalCenter
+                width: 24
+                height: 24
+                radius: 12
+                color: body.pageIndex === 6
+                    ? Qt.rgba(1, 1, 1, 0.20)
+                    : (gearTap.pressed ? Qt.rgba(1, 1, 1, 0.12) : "transparent")
+
+                Text {
+                    anchors.centerIn: parent
+                    text: "\u2699"
+                    color: body.pageIndex === 6 ? "white" : Qt.rgba(1, 1, 1, 0.55)
+                    font.pixelSize: 14
+                }
+
+                TapHandler {
+                    id: gearTap
+                    onTapped: body.pageIndex = (body.pageIndex === 6 ? 0 : 6)
+                }
             }
         }
 

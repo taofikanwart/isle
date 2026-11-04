@@ -15,6 +15,9 @@ find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Core Gui Quick DBus)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core Gui Quick DBus)
 message(STATUS "Building against Qt ${QT_VERSION_MAJOR}")
 
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(GIO REQUIRED gio-2.0)
+
 find_package(LayerShellQt QUIET)
 
 add_executable(isle-island
@@ -32,12 +35,13 @@ else()
     message(WARNING "LayerShellQt not found: Wayland falls back to a plain window")
 endif()
 
-target_include_directories(isle-island PRIVATE src)
+target_include_directories(isle-island PRIVATE src ${GIO_INCLUDE_DIRS})
 target_link_libraries(isle-island PRIVATE
     Qt${QT_VERSION_MAJOR}::Core
     Qt${QT_VERSION_MAJOR}::Gui
     Qt${QT_VERSION_MAJOR}::Quick
     Qt${QT_VERSION_MAJOR}::DBus
+    ${GIO_LIBRARIES}
 )
 
 if(LayerShellQt_FOUND)

@@ -3,16 +3,16 @@
 
 #pragma once
 
+#include <QDBusMessage>
 #include <QObject>
+#include <QSettings>
 #include <QString>
 #include <QVariantList>
 
-// A thin client for isled's Media1 interface. Every property is a JSON string
-// on the bus (see gnome-extension/src/daemon.js); this parses NowPlaying into
-// the handful of fields the compact island and the media page show.
 class DaemonClient : public QObject {
     Q_OBJECT
 
+    // --- media --------------------------------------------------------------
     Q_PROPERTY(bool connected READ connected NOTIFY changed)
     Q_PROPERTY(bool available READ available NOTIFY changed)
     Q_PROPERTY(QString title READ title NOTIFY changed)
@@ -23,7 +23,6 @@ class DaemonClient : public QObject {
     Q_PROPERTY(bool canPlayPause READ canPlayPause NOTIFY changed)
     Q_PROPERTY(bool canGoNext READ canGoNext NOTIFY changed)
     Q_PROPERTY(bool canGoPrevious READ canGoPrevious NOTIFY changed)
-    // Seconds, from the last position isled reported.
     Q_PROPERTY(double position READ position NOTIFY changed)
     Q_PROPERTY(double duration READ duration NOTIFY changed)
 
@@ -35,8 +34,23 @@ class DaemonClient : public QObject {
     Q_PROPERTY(int pomodoroSessions READ pomodoroSessions NOTIFY pomodoroChanged)
 
     // --- todo ---------------------------------------------------------------
-    // List of {id, title, done}
     Q_PROPERTY(QVariantList tasks READ tasks NOTIFY tasksChanged)
+
+    // --- clipboard ----------------------------------------------------------
+    Q_PROPERTY(QVariantList clips READ clips NOTIFY clipsChanged)
+
+    // --- calendar -----------------------------------------------------------
+    Q_PROPERTY(QVariantList events READ events NOTIFY eventsChanged)
+
+    // --- notifications ------------------------------------------------------
+    Q_PROPERTY(QVariantList notifications READ notifications NOTIFY notificationsChanged)
+    Q_PROPERTY(int unreadNotificationsCount READ unreadNotificationsCount NOTIFY notificationsChanged)
+
+    // --- settings (persistent via QSettings ~/.config/isle/island.conf) ----
+    Q_PROPERTY(QString themeName READ themeName WRITE setThemeName NOTIFY settingsChanged)
+    Q_PROPERTY(int glassTint READ glassTint WRITE setGlassTint NOTIFY settingsChanged)
+    Q_PROPERTY(bool inBar READ inBar WRITE setInBar NOTIFY settingsChanged)
+    Q_PROPERTY(int notchDepth READ notchDepth WRITE setNotchDepth NOTIFY settingsChanged)
 
 public:
     explicit DaemonClient(QObject *parent = nullptr);
@@ -61,7 +75,22 @@ public:
     int pomodoroSessions() const { return m_pomodoroSessions; }
 
     QVariantList tasks() const { return m_tasks; }
+    QVariantList clips() const { return m_clips; }
+    QVariantList events() const { return m_events; }
+    QVariantList notifications() const { return m_notifications; }
+    int unreadNotificationsCount() const { return m_notifications.size(); }
 
+    // Settings getters & setters
+    QString themeName() const { return m_themeName; }
+    void setThemeName(const QString &val);
+    int glassTint() const { return m_glassTint; }
+    void setGlassTint(int val);
+    bool inBar() const { return m_inBar; }
+    void setInBar(bool val);
+    int notchDepth() const { return m_notchDepth; }
+    void setNotchDepth(int val);
+
+    // Media actions
     Q_INVOKABLE void playPause();
     Q_INVOKABLE void next();
     Q_INVOKABLE void previous();
@@ -77,21 +106,48 @@ public:
     Q_INVOKABLE void todoRename(quint64 id, const QString &text);
     Q_INVOKABLE void todoRemove(quint64 id);
 
+    // Clipboard actions
+    Q_INVOKABLE void clipCopy(const QString &text);
+    Q_INVOKABLE void clipSetPinned(quint64 id, bool pinned);
+    Q_INVOKABLE void clipRemove(quint64 id);
+    Q_INVOKABLE void clipClear();
+
+    // Calendar actions
+    Q_INVOKABLE void calendarAdd(const QString &date, const QString &title);
+    Q_INVOKABLE void calendarRemove(quint64 id);
+
+    // Notification actions
+    Q_INVOKABLE void notificationDismiss(int index);
+    Q_INVOKABLE void notificationClearAll();
+    void appendNotification(const QString &app, const QString &summary, const QString &text);
+
 signals:
     void changed();
     void pomodoroChanged();
     void tasksChanged();
+    void clipsChanged();
+    void eventsChanged();
+    void notificationsChanged();
+    void settingsChanged();
+    void notificationArrived(const QString &summary, const QString &body, const QString &app);
 
 private slots:
     void onPropertiesChanged(const QString &interface,
                              const QVariantMap &changed,
                              const QStringList &invalidated);
+    void onClipboardChanged();
 
 private:
     void refresh();
     void parse(const QString &json);
     void parsePomodoro(const QString &json);
     void parseTasks(const QString &json);
+    void parseClips(const QString &json);
+    void parseEvents(const QString &json);
+
+    void setupNotificationListener();
+    void loadSettings();
+    void saveSettings();
 
     bool m_connected = false;
     bool m_available = false;
@@ -114,6 +170,19 @@ private:
     qint64 m_pomodoroEndsAtMs = 0;
     int m_pomodoroSessions = 0;
 
-    // Tasks
+    // Tasks, Clips, Events, Notifications
     QVariantList m_tasks;
+    QVariantList m_clips;
+    QVariantList m_events;
+    QVariantList m_notifications;
+    quint64 m_nextNotifId = 1;
+
+    // Clipboard loop protection
+    QString m_lastCopiedText;
+
+    // Settings
+    QString m_themeName = QStringLiteral("black");
+    int m_glassTint = 0;
+    bool m_inBar = true;
+    int m_notchDepth = 30;
 };

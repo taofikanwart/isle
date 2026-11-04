@@ -7,6 +7,10 @@
         <file>pages/MediaPage.qml</file>
         <file>pages/TimerPage.qml</file>
         <file>pages/TasksPage.qml</file>
+        <file>pages/ClipboardPage.qml</file>
+        <file>pages/CalendarPage.qml</file>
+        <file>pages/NotificationsPage.qml</file>
+        <file>pages/SettingsPage.qml</file>
         <file alias="fonts/InterVariable.ttf">../../data/fonts/InterVariable.ttf</file>
     </qresource>
 </RCC>
