@@ -252,21 +252,78 @@ Item {
             }
         }
 
-        // The header, in the band the top bar occupies.
-        Text {
-            id: header
-            anchors.horizontalCenter: parent.horizontalCenter
-            y: Math.max(0, (root.topInset - height) / 2)
+        // Active page index
+        property int pageIndex: 0
+        readonly property var pageSources: [
+            "pages/MediaPage.qml",
+            "pages/TimerPage.qml",
+            "pages/TasksPage.qml",
+        ]
+
+        // --- header row: tabs on the left, clock centered -----------------
+        Item {
+            id: headerRow
+            x: 18
+            y: 0
+            width: body.width - 36
+            height: root.topInset
             visible: root.progress >= 0.5
             opacity: (root.progress - 0.5) * 2
-            text: Qt.formatTime(root.now, "hh:mm")
-            color: "white"
-            font.family: "Inter Variable"
-            font.pixelSize: 13
-            font.weight: Font.DemiBold
+
+            // Tabs
+            Row {
+                anchors.left: parent.left
+                anchors.verticalCenter: parent.verticalCenter
+                spacing: 4
+
+                Repeater {
+                    model: [
+                        { label: "Music", idx: 0 },
+                        { label: "Timer", idx: 1 },
+                        { label: "Tasks", idx: 2 },
+                    ]
+
+                    delegate: Rectangle {
+                        width: tabText.implicitWidth + 14
+                        height: 22
+                        radius: 11
+                        color: body.pageIndex === modelData.idx
+                            ? Qt.rgba(1, 1, 1, 0.16)
+                            : (tabTap.pressed ? Qt.rgba(1, 1, 1, 0.08) : "transparent")
+
+                        Text {
+                            id: tabText
+                            anchors.centerIn: parent
+                            text: modelData.label
+                            color: body.pageIndex === modelData.idx
+                                ? "white"
+                                : Qt.rgba(1, 1, 1, 0.55)
+                            font.family: "Inter Variable"
+                            font.pixelSize: 11
+                            font.weight: body.pageIndex === modelData.idx
+                                ? Font.Medium : Font.Normal
+                        }
+
+                        TapHandler {
+                            id: tabTap
+                            onTapped: body.pageIndex = modelData.idx
+                        }
+                    }
+                }
+            }
+
+            // The clock, perfectly centered in the notch
+            Text {
+                anchors.centerIn: parent
+                text: Qt.formatTime(root.now, "hh:mm")
+                color: "white"
+                font.family: "Inter Variable"
+                font.pixelSize: 13
+                font.weight: Font.DemiBold
+            }
         }
 
-        // Open: the pages, below the band the top bar occupies.
+        // Open: the active page, below the band the top bar occupies.
         Loader {
             x: 0
             y: root.topInset
@@ -274,7 +331,7 @@ Item {
             height: Math.max(0, body.height - root.topInset)
             visible: root.progress >= 0.5
             opacity: (root.progress - 0.5) * 2
-            source: "pages/MediaPage.qml"
+            source: body.pageSources[body.pageIndex]
             active: root.progress > 0.35
         }
     }

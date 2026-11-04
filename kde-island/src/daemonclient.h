@@ -5,6 +5,7 @@
 
 #include <QObject>
 #include <QString>
+#include <QVariantList>
 
 // A thin client for isled's Media1 interface. Every property is a JSON string
 // on the bus (see gnome-extension/src/daemon.js); this parses NowPlaying into
@@ -26,6 +27,17 @@ class DaemonClient : public QObject {
     Q_PROPERTY(double position READ position NOTIFY changed)
     Q_PROPERTY(double duration READ duration NOTIFY changed)
 
+    // --- pomodoro -----------------------------------------------------------
+    Q_PROPERTY(QString pomodoroPhase READ pomodoroPhase NOTIFY pomodoroChanged)
+    Q_PROPERTY(bool pomodoroRunning READ pomodoroRunning NOTIFY pomodoroChanged)
+    Q_PROPERTY(double pomodoroRemaining READ pomodoroRemaining NOTIFY pomodoroChanged)
+    Q_PROPERTY(double pomodoroDuration READ pomodoroDuration NOTIFY pomodoroChanged)
+    Q_PROPERTY(int pomodoroSessions READ pomodoroSessions NOTIFY pomodoroChanged)
+
+    // --- todo ---------------------------------------------------------------
+    // List of {id, title, done}
+    Q_PROPERTY(QVariantList tasks READ tasks NOTIFY tasksChanged)
+
 public:
     explicit DaemonClient(QObject *parent = nullptr);
 
@@ -42,12 +54,33 @@ public:
     double position() const { return m_position; }
     double duration() const { return m_duration; }
 
+    QString pomodoroPhase() const { return m_pomodoroPhase; }
+    bool pomodoroRunning() const { return m_pomodoroRunning; }
+    double pomodoroRemaining() const;
+    double pomodoroDuration() const { return m_pomodoroDuration; }
+    int pomodoroSessions() const { return m_pomodoroSessions; }
+
+    QVariantList tasks() const { return m_tasks; }
+
     Q_INVOKABLE void playPause();
     Q_INVOKABLE void next();
     Q_INVOKABLE void previous();
 
+    // Pomodoro actions
+    Q_INVOKABLE void pomodoroToggle();
+    Q_INVOKABLE void pomodoroStop();
+    Q_INVOKABLE void pomodoroSkip();
+
+    // Todo actions
+    Q_INVOKABLE void todoAdd(const QString &text);
+    Q_INVOKABLE void todoSetDone(quint64 id, bool done);
+    Q_INVOKABLE void todoRename(quint64 id, const QString &text);
+    Q_INVOKABLE void todoRemove(quint64 id);
+
 signals:
     void changed();
+    void pomodoroChanged();
+    void tasksChanged();
 
 private slots:
     void onPropertiesChanged(const QString &interface,
@@ -57,6 +90,8 @@ private slots:
 private:
     void refresh();
     void parse(const QString &json);
+    void parsePomodoro(const QString &json);
+    void parseTasks(const QString &json);
 
     bool m_connected = false;
     bool m_available = false;
@@ -70,4 +105,15 @@ private:
     bool m_canGoPrevious = false;
     double m_position = 0;
     double m_duration = 0;
+
+    // Pomodoro
+    QString m_pomodoroPhase = QStringLiteral("idle");
+    bool m_pomodoroRunning = false;
+    double m_pomodoroRemaining = 25 * 60;
+    double m_pomodoroDuration = 25 * 60;
+    qint64 m_pomodoroEndsAtMs = 0;
+    int m_pomodoroSessions = 0;
+
+    // Tasks
+    QVariantList m_tasks;
 };

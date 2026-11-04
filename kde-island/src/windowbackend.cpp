@@ -52,8 +52,9 @@ void WindowBackend::attach() {
     if (!m_layerShell) {
         // X11 (or Wayland without layer-shell): frameless, on top of
         // everything, unmanaged, and never taking focus from the user.
+        // Qt::WindowDoesNotAcceptFocus removed so text inputs (reminders,
+        // search, assistant chat) can receive keystrokes.
         m_window->setFlags(Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint |
-                           Qt::WindowDoesNotAcceptFocus |
                            Qt::X11BypassWindowManagerHint);
     }
 

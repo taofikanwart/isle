@@ -5,6 +5,8 @@
         <file>Icon.qml</file>
         <file>Theme.js</file>
         <file>pages/MediaPage.qml</file>
+        <file>pages/TimerPage.qml</file>
+        <file>pages/TasksPage.qml</file>
         <file alias="fonts/InterVariable.ttf">../../data/fonts/InterVariable.ttf</file>
     </qresource>
 </RCC>
