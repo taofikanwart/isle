@@ -81,7 +81,7 @@ Item {
         // LEFT COLUMN: Mini Month Calendar Grid
         // ===================================================================
         Column {
-            width: 220
+            width: 200
             height: parent.height
             spacing: 8
 
@@ -152,7 +152,7 @@ Item {
                 Repeater {
                     model: page.dayHeaders
                     delegate: Item {
-                        width: 220 / 7
+                        width: 200 / 7
                         height: 18
                         Text {
                             anchors.centerIn: parent
@@ -175,7 +175,7 @@ Item {
                     model: page.monthGridDays
 
                     delegate: Item {
-                        width: 220 / 7
+                        width: 200 / 7
                         height: 22
 
                         readonly property bool isSel: page.isSameDay(modelData.date, page.selectedDate)
@@ -220,7 +220,7 @@ Item {
         // RIGHT COLUMN: Selected Day Agenda & Quick Add
         // ===================================================================
         Column {
-            width: parent.width - 220 - 20 - 1
+            width: parent.width - 200 - 20 - 1
             height: parent.height
             spacing: 8
 
@@ -354,8 +354,8 @@ Item {
                 TextInput {
                     id: input
                     anchors.fill: parent
-                    anchors.leftMargin: 10
-                    anchors.rightMargin: 10
+                    anchors.leftMargin: 12
+                    anchors.rightMargin: 12
                     verticalAlignment: TextInput.AlignVCenter
                     color: "white"
                     font.pixelSize: 11
@@ -365,6 +365,7 @@ Item {
 
                     Text {
                         anchors.fill: parent
+                        anchors.leftMargin: 12
                         verticalAlignment: Text.AlignVCenter
                         visible: input.text === "" && !input.activeFocus
                         text: "Add event for this day (e.g. Sync at 15:00)\u2026"
