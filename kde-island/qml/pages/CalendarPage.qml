@@ -86,7 +86,7 @@ Item {
             spacing: 8
 
             // Month navigation header
-            Row {
+            Item {
                 width: parent.width
                 height: 24
 
@@ -225,7 +225,7 @@ Item {
             spacing: 8
 
             // Day Agenda Header (e.g. Wednesday, 4 Nov)
-            Row {
+            Item {
                 width: parent.width
                 height: 24
 

@@ -35,7 +35,7 @@ Item {
 
                 // Do Not Disturb: no banner on the closed notch while on.
                 Rectangle {
-                    width: 76
+                    width: 30
                     height: 22
                     radius: 6
                     color: daemon.doNotDisturb ? Qt.rgba(56/255, 189/255, 248/255, 0.25)
@@ -46,10 +46,9 @@ Item {
 
                     Text {
                         anchors.centerIn: parent
-                        text: daemon.doNotDisturb ? "DND on" : "DND off"
+                        text: daemon.doNotDisturb ? "\u263E" : "\u2600"
                         color: daemon.doNotDisturb ? "#38bdf8" : Qt.rgba(1, 1, 1, 0.7)
-                        font.pixelSize: 11
-                        font.weight: Font.Medium
+                        font.pixelSize: 14
                     }
 
                     TapHandler {
