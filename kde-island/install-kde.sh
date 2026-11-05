@@ -20,15 +20,18 @@ die() { printf 'Isle: %s\n' "$*" >&2; exit 1; }
 
 # --- dependencies already on the system ------------------------------------
 step "Checking what the island needs"
+# Read once: piping ldconfig into `grep -q` gives it SIGPIPE, and with pipefail
+# that reads as a missing library.
+CACHE="$(ldconfig -p 2>/dev/null || true)"
 missing=()
 for lib in libQt5Quick.so.5 libQt5DBus.so.5 libgio-2.0.so.0 libX11.so.6; do
-    ldconfig -p 2>/dev/null | grep -q "$lib" || missing+=("$lib")
+    grep -qF -- "$lib" <<<"$CACHE" || missing+=("$lib")
 done
 if [ "${#missing[@]}" -gt 0 ]; then
     die "missing libraries: ${missing[*]}
 On Debian/Ubuntu: sudo apt install libqt5quick5 libqt5dbus5 libglib2.0-0 libx11-6"
 fi
-if ! ldconfig -p 2>/dev/null | grep -q LayerShellQtInterface; then
+if ! grep -qF LayerShellQtInterface <<<"$CACHE"; then
     printf 'Note: LayerShellQt not found; the island will only work in an X11 session.\n'
 fi
 

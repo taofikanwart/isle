@@ -36,6 +36,10 @@ class DaemonClient : public QObject {
     // --- todo ---------------------------------------------------------------
     Q_PROPERTY(QVariantList tasks READ tasks NOTIFY tasksChanged)
 
+    // --- lyrics -------------------------------------------------------------
+    Q_PROPERTY(QString lyricsStatus READ lyricsStatus NOTIFY lyricsChanged)
+    Q_PROPERTY(QVariantList lyricsLines READ lyricsLines NOTIFY lyricsChanged)
+
     // --- clipboard ----------------------------------------------------------
     Q_PROPERTY(QVariantList clips READ clips NOTIFY clipsChanged)
 
@@ -75,6 +79,8 @@ public:
     int pomodoroSessions() const { return m_pomodoroSessions; }
 
     QVariantList tasks() const { return m_tasks; }
+    QString lyricsStatus() const { return m_lyricsStatus; }
+    QVariantList lyricsLines() const { return m_lyricsLines; }
     QVariantList clips() const { return m_clips; }
     QVariantList events() const { return m_events; }
     QVariantList notifications() const { return m_notifications; }
@@ -94,6 +100,10 @@ public:
     Q_INVOKABLE void playPause();
     Q_INVOKABLE void next();
     Q_INVOKABLE void previous();
+
+    // Lyrics and seeking
+    Q_INVOKABLE void setLyricsEnabled(bool enabled);
+    Q_INVOKABLE void seekTo(qint64 positionUs);
 
     // Pomodoro actions
     Q_INVOKABLE void pomodoroToggle();
@@ -124,6 +134,7 @@ public:
 signals:
     void changed();
     void pomodoroChanged();
+    void lyricsChanged();
     void tasksChanged();
     void clipsChanged();
     void eventsChanged();
@@ -141,6 +152,7 @@ private:
     void refresh();
     void parse(const QString &json);
     void parsePomodoro(const QString &json);
+    void parseLyrics(const QString &json);
     void parseTasks(const QString &json);
     void parseClips(const QString &json);
     void parseEvents(const QString &json);
@@ -172,6 +184,10 @@ private:
 
     // Tasks, Clips, Events, Notifications
     QVariantList m_tasks;
+
+    // Lyrics
+    QString m_lyricsStatus = QStringLiteral("none");
+    QVariantList m_lyricsLines;
     QVariantList m_clips;
     QVariantList m_events;
     QVariantList m_notifications;

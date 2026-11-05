@@ -160,6 +160,18 @@ void DaemonClient::previous() {
 }
 
 // Pomodoro
+void DaemonClient::setLyricsEnabled(bool enabled) {
+    QDBusInterface media(QString::fromLatin1(SERVICE), QString::fromLatin1(PATH),
+                         QString::fromLatin1(MEDIA));
+    media.asyncCall(QStringLiteral("SetLyrics"), enabled);
+}
+
+void DaemonClient::seekTo(qint64 positionUs) {
+    QDBusInterface media(QString::fromLatin1(SERVICE), QString::fromLatin1(PATH),
+                         QString::fromLatin1(MEDIA));
+    media.asyncCall(QStringLiteral("SetPosition"), positionUs);
+}
+
 void DaemonClient::pomodoroToggle() {
     QDBusInterface pomo(QString::fromLatin1(SERVICE), QString::fromLatin1(PATH),
                         QString::fromLatin1(POMODORO));
@@ -305,9 +317,12 @@ void DaemonClient::onPropertiesChanged(const QString &interface,
                                        const QStringList &invalidated) {
     Q_UNUSED(invalidated)
     if (interface == QLatin1String(MEDIA)) {
-        const auto it = changed.constFind(QStringLiteral("NowPlaying"));
-        if (it != changed.constEnd())
-            parse(it->toString());
+        const auto nowPlaying = changed.constFind(QStringLiteral("NowPlaying"));
+        if (nowPlaying != changed.constEnd())
+            parse(nowPlaying->toString());
+        const auto lyrics = changed.constFind(QStringLiteral("Lyrics"));
+        if (lyrics != changed.constEnd())
+            parseLyrics(lyrics->toString());
     } else if (interface == QLatin1String(POMODORO)) {
         const auto it = changed.constFind(QStringLiteral("State"));
         if (it != changed.constEnd())
@@ -341,6 +356,12 @@ void DaemonClient::refresh() {
         m_connected = false;
         emit changed();
     }
+
+    // Lyrics
+    reply = props.call(
+        QStringLiteral("Get"), QString::fromLatin1(MEDIA), QStringLiteral("Lyrics"));
+    if (reply.isValid())
+        parseLyrics(reply.value().toString());
 
     // Pomodoro
     reply = props.call(
@@ -463,4 +484,22 @@ void DaemonClient::parseEvents(const QString &json) {
     }
     m_events = list;
     emit eventsChanged();
+}
+
+void DaemonClient::parseLyrics(const QString &json) {
+    const QJsonObject o = QJsonDocument::fromJson(json.toUtf8()).object();
+    const QString status = o.value(QStringLiteral("status")).toString(QStringLiteral("none"));
+    QVariantList lines;
+    for (const auto &v : o.value(QStringLiteral("lines")).toArray()) {
+        const QJsonObject line = v.toObject();
+        QVariantMap m;
+        m[QStringLiteral("time")] = line.value(QStringLiteral("time_ms")).toVariant().toLongLong();
+        m[QStringLiteral("text")] = line.value(QStringLiteral("text")).toString();
+        lines.append(m);
+    }
+    if (m_lyricsStatus == status && m_lyricsLines == lines)
+        return;
+    m_lyricsStatus = status;
+    m_lyricsLines = lines;
+    emit lyricsChanged();
 }
