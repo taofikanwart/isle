@@ -55,6 +55,9 @@ class DaemonClient : public QObject {
     Q_PROPERTY(int glassTint READ glassTint WRITE setGlassTint NOTIFY settingsChanged)
     Q_PROPERTY(bool inBar READ inBar WRITE setInBar NOTIFY settingsChanged)
     Q_PROPERTY(int notchDepth READ notchDepth WRITE setNotchDepth NOTIFY settingsChanged)
+    // Island-local Do Not Disturb: while on, a notification does not widen the
+    // notch; it still lands in the list.
+    Q_PROPERTY(bool doNotDisturb READ doNotDisturb WRITE setDoNotDisturb NOTIFY settingsChanged)
 
 public:
     explicit DaemonClient(QObject *parent = nullptr);
@@ -95,6 +98,8 @@ public:
     void setInBar(bool val);
     int notchDepth() const { return m_notchDepth; }
     void setNotchDepth(int val);
+    bool doNotDisturb() const { return m_doNotDisturb; }
+    void setDoNotDisturb(bool val);
 
     // Media actions
     Q_INVOKABLE void playPause();
@@ -201,4 +206,5 @@ private:
     int m_glassTint = 0;
     bool m_inBar = true;
     int m_notchDepth = 30;
+    bool m_doNotDisturb = false;
 };

@@ -95,7 +95,6 @@ Item {
                     anchors.horizontalCenter: parent.horizontalCenter
                     text: page.formatMinutes(page.displaySeconds)
                     color: "white"
-                    font.family: "Inter Variable"
                     font.pixelSize: 22
                     font.weight: Font.DemiBold
                 }
@@ -103,7 +102,6 @@ Item {
                     anchors.horizontalCenter: parent.horizontalCenter
                     text: page.phaseLabel(daemon.pomodoroPhase)
                     color: Qt.rgba(1, 1, 1, 0.5)
-                    font.family: "Inter Variable"
                     font.pixelSize: 11
                 }
             }
@@ -139,7 +137,6 @@ Item {
                             text: daemon.pomodoroRunning ? "Pause"
                                 : (daemon.pomodoroPhase === "idle" ? "Start" : "Resume")
                             color: "white"
-                            font.family: "Inter Variable"
                             font.pixelSize: 13
                             font.weight: Font.Medium
                         }
@@ -200,7 +197,6 @@ Item {
                     ? daemon.pomodoroSessions + " session" + (daemon.pomodoroSessions > 1 ? "s" : "") + " today"
                     : "No sessions today"
                 color: Qt.rgba(1, 1, 1, 0.4)
-                font.family: "Inter Variable"
                 font.pixelSize: 11
             }
         }

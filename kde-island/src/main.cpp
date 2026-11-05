@@ -9,7 +9,6 @@
 #include <QDateTime>
 #include <QDBusConnection>
 #include <QDebug>
-#include <QFontDatabase>
 #include <QGuiApplication>
 #include <QQmlContext>
 #include <QQuickView>
@@ -42,9 +41,6 @@ int main(int argc, char *argv[]) {
     app.setApplicationName(QStringLiteral("isle-island"));
     app.setApplicationDisplayName(QStringLiteral("Isle"));
     app.setOrganizationDomain(QStringLiteral("zickrian.github.io"));
-
-    // Isle's own typeface, shipped with the extension.
-    QFontDatabase::addApplicationFont(QStringLiteral(":/fonts/InterVariable.ttf"));
 
     // Claim the frontend name so isled's clipboard, assistant and agent
     // methods answer us. First claim wins, like GNOME Shell's own name: a

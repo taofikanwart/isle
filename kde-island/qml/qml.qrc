@@ -11,7 +11,6 @@
         <file>pages/CalendarPage.qml</file>
         <file>pages/NotificationsPage.qml</file>
         <file>pages/SettingsPage.qml</file>
-        <file alias="fonts/InterVariable.ttf">../../data/fonts/InterVariable.ttf</file>
         <file>icons/isle-airplane-symbolic.svg</file>
         <file>icons/isle-apps-fill.svg</file>
         <file>icons/isle-apps.svg</file>

@@ -94,7 +94,6 @@ Item {
                     anchors.verticalCenter: parent.verticalCenter
                     text: page.monthNames[page.displayMonth] + " " + page.displayYear
                     color: "white"
-                    font.family: "Inter Variable"
                     font.pixelSize: 13
                     font.weight: Font.SemiBold
                 }
@@ -159,7 +158,6 @@ Item {
                             anchors.centerIn: parent
                             text: modelData
                             color: Qt.rgba(1, 1, 1, 0.4)
-                            font.family: "Inter Variable"
                             font.pixelSize: 10
                             font.weight: Font.DemiBold
                         }
@@ -194,7 +192,6 @@ Item {
                                 anchors.centerIn: parent
                                 text: modelData.date.getDate()
                                 color: isSel ? "black" : (modelData.currentMonth ? "white" : Qt.rgba(1, 1, 1, 0.25))
-                                font.family: "Inter Variable"
                                 font.pixelSize: 11
                                 font.weight: (isSel || isCurrentDay) ? Font.Bold : Font.Normal
                             }
@@ -236,7 +233,6 @@ Item {
                     anchors.verticalCenter: parent.verticalCenter
                     text: Qt.formatDate(page.selectedDate, "dddd, d MMM")
                     color: "white"
-                    font.family: "Inter Variable"
                     font.pixelSize: 13
                     font.weight: Font.SemiBold
                 }
@@ -253,7 +249,6 @@ Item {
                         anchors.centerIn: parent
                         text: "Today"
                         color: Qt.rgba(1, 1, 1, 0.8)
-                        font.family: "Inter Variable"
                         font.pixelSize: 10
                         font.weight: Font.Medium
                     }
@@ -307,7 +302,6 @@ Item {
                                 anchors.centerIn: parent
                                 text: modelData.start || "All day"
                                 color: "#38bdf8"
-                                font.family: "Inter Variable"
                                 font.pixelSize: 10
                                 font.weight: Font.Medium
                             }
@@ -320,7 +314,6 @@ Item {
                             elide: Text.ElideRight
                             text: modelData.title
                             color: "white"
-                            font.family: "Inter Variable"
                             font.pixelSize: 12
                         }
 
@@ -345,7 +338,6 @@ Item {
                     visible: list.count === 0
                     text: "No events on this day"
                     color: Qt.rgba(1, 1, 1, 0.35)
-                    font.family: "Inter Variable"
                     font.pixelSize: 12
                 }
             }
@@ -365,7 +357,6 @@ Item {
                     anchors.rightMargin: 10
                     verticalAlignment: TextInput.AlignVCenter
                     color: "white"
-                    font.family: "Inter Variable"
                     font.pixelSize: 11
                     selectByMouse: true
 
@@ -377,7 +368,6 @@ Item {
                         visible: input.text === "" && !input.activeFocus
                         text: "Add event for this day (e.g. Sync at 15:00)\u2026"
                         color: Qt.rgba(1, 1, 1, 0.35)
-                        font.family: "Inter Variable"
                         font.pixelSize: 11
                     }
 

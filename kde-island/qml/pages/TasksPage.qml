@@ -61,7 +61,6 @@ Item {
                     elide: Text.ElideRight
                     text: modelData.title
                     color: modelData.done ? Qt.rgba(1, 1, 1, 0.35) : "white"
-                    font.family: "Inter Variable"
                     font.pixelSize: 13
                     font.strikeout: modelData.done
                 }
@@ -86,7 +85,6 @@ Item {
                 visible: list.count === 0
                 text: "No reminders"
                 color: Qt.rgba(1, 1, 1, 0.35)
-                font.family: "Inter Variable"
                 font.pixelSize: 13
             }
         }
@@ -107,7 +105,6 @@ Item {
                 anchors.rightMargin: 12
                 verticalAlignment: TextInput.AlignVCenter
                 color: "white"
-                font.family: "Inter Variable"
                 font.pixelSize: 12
                 selectByMouse: true
 
@@ -117,7 +114,6 @@ Item {
                     visible: input.text === "" && !input.activeFocus
                     text: "New reminder\u2026"
                     color: Qt.rgba(1, 1, 1, 0.35)
-                    font.family: "Inter Variable"
                     font.pixelSize: 12
                 }
 

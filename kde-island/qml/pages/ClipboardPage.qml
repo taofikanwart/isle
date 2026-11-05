@@ -44,7 +44,6 @@ Item {
                     anchors.rightMargin: 10
                     verticalAlignment: TextInput.AlignVCenter
                     color: "white"
-                    font.family: "Inter Variable"
                     font.pixelSize: 12
                     selectByMouse: true
                     onTextChanged: page.searchQuery = text.toLowerCase().trim()
@@ -55,7 +54,6 @@ Item {
                         visible: searchInput.text === "" && !searchInput.activeFocus
                         text: "Search clipboard\u2026"
                         color: Qt.rgba(1, 1, 1, 0.35)
-                        font.family: "Inter Variable"
                         font.pixelSize: 12
                     }
                 }
@@ -73,7 +71,6 @@ Item {
                     anchors.centerIn: parent
                     text: "Clear all"
                     color: Qt.rgba(1, 1, 1, 0.6)
-                    font.family: "Inter Variable"
                     font.pixelSize: 11
                 }
 
@@ -96,7 +93,6 @@ Item {
                 anchors.centerIn: parent
                 text: page.feedback
                 color: "white"
-                font.family: "Inter Variable"
                 font.pixelSize: 11
                 font.weight: Font.Medium
             }
@@ -153,7 +149,6 @@ Item {
                             anchors.centerIn: parent
                             text: modelData.kind === "link" ? "LINK" : "TEXT"
                             color: "white"
-                            font.family: "Inter Variable"
                             font.pixelSize: 9
                             font.weight: Font.Bold
                         }
@@ -168,7 +163,6 @@ Item {
                         wrapMode: Text.WrapAnywhere
                         text: modelData.preview || ""
                         color: "white"
-                        font.family: "Inter Variable"
                         font.pixelSize: 12
                     }
 
@@ -227,7 +221,6 @@ Item {
                 visible: list.count === 0
                 text: page.searchQuery === "" ? "Clipboard history is empty" : "No matching clips"
                 color: Qt.rgba(1, 1, 1, 0.35)
-                font.family: "Inter Variable"
                 font.pixelSize: 13
             }
         }

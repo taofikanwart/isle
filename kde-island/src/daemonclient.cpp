@@ -81,6 +81,7 @@ void DaemonClient::loadSettings() {
     m_glassTint = s.value(QStringLiteral("glassTint"), 0).toInt();
     m_inBar = s.value(QStringLiteral("inBar"), true).toBool();
     m_notchDepth = s.value(QStringLiteral("notchDepth"), 30).toInt();
+    m_doNotDisturb = s.value(QStringLiteral("doNotDisturb"), false).toBool();
 }
 
 void DaemonClient::saveSettings() {
@@ -89,6 +90,7 @@ void DaemonClient::saveSettings() {
     s.setValue(QStringLiteral("glassTint"), m_glassTint);
     s.setValue(QStringLiteral("inBar"), m_inBar);
     s.setValue(QStringLiteral("notchDepth"), m_notchDepth);
+    s.setValue(QStringLiteral("doNotDisturb"), m_doNotDisturb);
 }
 
 void DaemonClient::setThemeName(const QString &val) {
@@ -112,6 +114,14 @@ void DaemonClient::setInBar(bool val) {
     if (m_inBar == val)
         return;
     m_inBar = val;
+    saveSettings();
+    emit settingsChanged();
+}
+
+void DaemonClient::setDoNotDisturb(bool val) {
+    if (m_doNotDisturb == val)
+        return;
+    m_doNotDisturb = val;
     saveSettings();
     emit settingsChanged();
 }

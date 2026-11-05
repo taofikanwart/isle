@@ -26,7 +26,6 @@ Item {
                 anchors.verticalCenter: parent.verticalCenter
                 text: "Island theme"
                 color: "white"
-                font.family: "Inter Variable"
                 font.pixelSize: 13
                 font.weight: Font.Medium
             }
@@ -49,7 +48,6 @@ Item {
                         anchors.centerIn: parent
                         text: "Black"
                         color: "white"
-                        font.family: "Inter Variable"
                         font.pixelSize: 12
                         font.weight: daemon.themeName === "black" ? Font.DemiBold : Font.Normal
                     }
@@ -72,7 +70,6 @@ Item {
                         anchors.centerIn: parent
                         text: "Glass"
                         color: "white"
-                        font.family: "Inter Variable"
                         font.pixelSize: 12
                         font.weight: daemon.themeName === "glass" ? Font.DemiBold : Font.Normal
                     }
@@ -95,7 +92,6 @@ Item {
                 anchors.verticalCenter: parent.verticalCenter
                 text: "Glass dark tint"
                 color: Qt.rgba(1, 1, 1, 0.8)
-                font.family: "Inter Variable"
                 font.pixelSize: 12
             }
 
@@ -119,7 +115,6 @@ Item {
                     horizontalAlignment: Text.AlignHCenter
                     text: daemon.glassTint + "%"
                     color: "white"
-                    font.family: "Inter Variable"
                     font.pixelSize: 12
                 }
 
@@ -144,7 +139,6 @@ Item {
                 anchors.verticalCenter: parent.verticalCenter
                 text: "Closed island position"
                 color: "white"
-                font.family: "Inter Variable"
                 font.pixelSize: 13
                 font.weight: Font.Medium
             }
@@ -161,7 +155,6 @@ Item {
                     anchors.centerIn: parent
                     text: daemon.inBar ? "Inside top bar" : "Hanging below"
                     color: "white"
-                    font.family: "Inter Variable"
                     font.pixelSize: 12
                 }
 
@@ -182,7 +175,6 @@ Item {
                 anchors.verticalCenter: parent.verticalCenter
                 text: "Notch depth (height)"
                 color: Qt.rgba(1, 1, 1, 0.8)
-                font.family: "Inter Variable"
                 font.pixelSize: 12
             }
 
@@ -206,7 +198,6 @@ Item {
                     horizontalAlignment: Text.AlignHCenter
                     text: daemon.notchDepth + " px"
                     color: "white"
-                    font.family: "Inter Variable"
                     font.pixelSize: 12
                 }
 
@@ -226,7 +217,6 @@ Item {
             anchors.horizontalCenter: parent.horizontalCenter
             text: "Isle for KDE Plasma \u2022 Config saved to ~/.config/isle/island.conf"
             color: Qt.rgba(1, 1, 1, 0.3)
-            font.family: "Inter Variable"
             font.pixelSize: 10
         }
     }

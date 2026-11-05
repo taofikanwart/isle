@@ -24,30 +24,58 @@ Item {
             Text {
                 text: "Recent notifications"
                 color: Qt.rgba(1, 1, 1, 0.5)
-                font.family: "Inter Variable"
                 font.pixelSize: 12
                 font.weight: Font.Medium
             }
 
-            Rectangle {
-                visible: daemon.notifications.length > 0
+            Row {
                 anchors.right: parent.right
-                width: 60
-                height: 22
-                radius: 6
-                color: clearTap.pressed ? Qt.rgba(1, 1, 1, 0.2) : Qt.rgba(1, 1, 1, 0.08)
+                anchors.verticalCenter: parent.verticalCenter
+                spacing: 6
 
-                Text {
-                    anchors.centerIn: parent
-                    text: "Clear all"
-                    color: Qt.rgba(1, 1, 1, 0.7)
-                    font.family: "Inter Variable"
-                    font.pixelSize: 11
+                // Do Not Disturb: no banner on the closed notch while on.
+                Rectangle {
+                    width: 76
+                    height: 22
+                    radius: 6
+                    color: daemon.doNotDisturb ? Qt.rgba(56/255, 189/255, 248/255, 0.25)
+                        : (dndTap.pressed ? Qt.rgba(1, 1, 1, 0.2) : Qt.rgba(1, 1, 1, 0.08))
+                    border.width: 1
+                    border.color: daemon.doNotDisturb ? Qt.rgba(56/255, 189/255, 248/255, 0.5)
+                                                      : "transparent"
+
+                    Text {
+                        anchors.centerIn: parent
+                        text: daemon.doNotDisturb ? "DND on" : "DND off"
+                        color: daemon.doNotDisturb ? "#38bdf8" : Qt.rgba(1, 1, 1, 0.7)
+                        font.pixelSize: 11
+                        font.weight: Font.Medium
+                    }
+
+                    TapHandler {
+                        id: dndTap
+                        onTapped: daemon.doNotDisturb = !daemon.doNotDisturb
+                    }
                 }
 
-                TapHandler {
-                    id: clearTap
-                    onTapped: daemon.notificationClearAll()
+                Rectangle {
+                    visible: daemon.notifications.length > 0
+                    width: 60
+                    height: 22
+                    radius: 6
+                    color: clearTap.pressed ? Qt.rgba(1, 1, 1, 0.2) : Qt.rgba(1, 1, 1, 0.08)
+
+                    Text {
+                        anchors.centerIn: parent
+                        text: "Clear all"
+                        color: Qt.rgba(1, 1, 1, 0.7)
+                        font.pixelSize: 11
+                    }
+
+                    TapHandler {
+                        id: clearTap
+                        onTapped: daemon.notificationClearAll()
+                    }
                 }
             }
         }
@@ -91,7 +119,6 @@ Item {
                                     anchors.centerIn: parent
                                     text: modelData.app || "App"
                                     color: Qt.rgba(1, 1, 1, 0.85)
-                                    font.family: "Inter Variable"
                                     font.pixelSize: 10
                                     font.weight: Font.DemiBold
                                 }
@@ -100,7 +127,6 @@ Item {
                             Text {
                                 text: modelData.time || ""
                                 color: Qt.rgba(1, 1, 1, 0.35)
-                                font.family: "Inter Variable"
                                 font.pixelSize: 10
                             }
                         }
@@ -110,7 +136,6 @@ Item {
                             elide: Text.ElideRight
                             text: modelData.summary || ""
                             color: "white"
-                            font.family: "Inter Variable"
                             font.pixelSize: 12
                             font.weight: Font.SemiBold
                         }
@@ -122,7 +147,6 @@ Item {
                             wrapMode: Text.WrapAnywhere
                             text: modelData.body || ""
                             color: Qt.rgba(1, 1, 1, 0.65)
-                            font.family: "Inter Variable"
                             font.pixelSize: 11
                         }
                     }
@@ -148,7 +172,6 @@ Item {
                 visible: list.count === 0
                 text: "No new notifications"
                 color: Qt.rgba(1, 1, 1, 0.35)
-                font.family: "Inter Variable"
                 font.pixelSize: 13
             }
         }

@@ -54,7 +54,9 @@ Item {
     Connections {
         target: daemon
         function onNotificationArrived(summary, body, app) {
-            if (!root.open) {
+            // While Do Not Disturb is on the notch keeps still; the entry
+            // still goes into the list and the badge still lights.
+            if (!root.open && !daemon.doNotDisturb) {
                 root.bannerSummary = summary;
                 root.bannerApp = app;
                 root.bannerAlert = true;
@@ -245,16 +247,14 @@ Item {
             visible: root.progress < 0.5
             opacity: 1 - root.progress * 2
 
-            // Banner alert view
+            // Banner alert view (clock stays visible to the right)
             Row {
                 anchors.centerIn: parent
                 visible: root.bannerAlert
                 spacing: 8
 
                 Rectangle {
-                    width: 14
-                    height: 14
-                    radius: 7
+                    width: 10; height: 10; radius: 5
                     color: "#38bdf8"
                     anchors.verticalCenter: parent.verticalCenter
                 }
@@ -262,18 +262,23 @@ Item {
                     anchors.verticalCenter: parent.verticalCenter
                     text: root.bannerApp + ":"
                     color: Qt.rgba(1, 1, 1, 0.7)
-                    font.family: "Inter Variable"
                     font.pixelSize: 11
                     font.weight: Font.DemiBold
                 }
                 Text {
                     anchors.verticalCenter: parent.verticalCenter
-                    width: Math.max(0, Math.min(180, implicitWidth))
+                    width: Math.max(0, Math.min(160, implicitWidth))
                     elide: Text.ElideRight
                     text: root.bannerSummary
                     color: "white"
-                    font.family: "Inter Variable"
                     font.pixelSize: 11
+                }
+                Text {
+                    anchors.verticalCenter: parent.verticalCenter
+                    text: Qt.formatTime(root.now, "hh:mm")
+                    color: Qt.rgba(1, 1, 1, 0.4)
+                    font.pixelSize: 11
+                    font.weight: Font.DemiBold
                 }
             }
 
@@ -309,7 +314,6 @@ Item {
                     anchors.verticalCenter: parent.verticalCenter
                     text: Qt.formatTime(root.now, "hh:mm")
                     color: "white"
-                    font.family: "Inter Variable"
                     font.pixelSize: 13
                     font.weight: Font.DemiBold
                 }
@@ -322,7 +326,6 @@ Item {
                     text: daemon.title !== "" ? daemon.title : "Playing"
                     color: "white"
                     opacity: 0.75
-                    font.family: "Inter Variable"
                     font.pixelSize: 11
                     anchors.verticalCenter: parent.verticalCenter
                 }
@@ -434,7 +437,6 @@ Item {
                                 visible: tabItem.isCurrent
                                 text: modelData.label
                                 color: "#ffffff"
-                                font.family: "Inter Variable"
                                 font.pixelSize: 12
                                 font.weight: Font.DemiBold
                                 anchors.verticalCenter: parent.verticalCenter
@@ -454,12 +456,19 @@ Item {
                 anchors.verticalCenter: parent.verticalCenter
                 spacing: 12
 
+                // The date, beside the clock when the island is open.
+                Text {
+                    anchors.verticalCenter: parent.verticalCenter
+                    text: Qt.formatDate(root.now, "dd MMM yyyy")
+                    color: Qt.rgba(1, 1, 1, 0.55)
+                    font.pixelSize: 11
+                }
+
                 // Header Clock matching GNOME Isle's (.isle-header-time)
                 Text {
                     anchors.verticalCenter: parent.verticalCenter
                     text: Qt.formatTime(root.now, "hh:mm")
                     color: Qt.rgba(1, 1, 1, 0.9)
-                    font.family: "Inter Variable"
                     font.pixelSize: 13
                     font.weight: Font.DemiBold
                 }

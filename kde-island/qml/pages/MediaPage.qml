@@ -109,7 +109,6 @@ Item {
                     ? (daemon.title !== "" ? daemon.title : "Untitled")
                     : "Nothing playing"
                 color: "white"
-                font.family: "Inter Variable"
                 font.pixelSize: 17
                 font.weight: Font.DemiBold
             }
@@ -119,7 +118,6 @@ Item {
                 visible: daemon.available
                 text: daemon.artist !== "" ? daemon.artist : "Unknown artist"
                 color: Qt.rgba(1, 1, 1, 0.62)
-                font.family: "Inter Variable"
                 font.pixelSize: 12
             }
             Text {
@@ -128,7 +126,6 @@ Item {
                 visible: daemon.album !== "" && daemon.available
                 text: daemon.album
                 color: Qt.rgba(1, 1, 1, 0.38)
-                font.family: "Inter Variable"
                 font.pixelSize: 11
             }
         }
@@ -153,7 +150,6 @@ Item {
                     anchors.centerIn: parent
                     text: "Lyrics"
                     color: page.showLyrics ? "white" : Qt.rgba(1, 1, 1, 0.7)
-                    font.family: "Inter Variable"
                     font.pixelSize: 10
                     font.weight: Font.Medium
                 }
@@ -231,7 +227,6 @@ Item {
         y: 138
         text: page.formatTime(daemon.position)
         color: Qt.rgba(1, 1, 1, 0.42)
-        font.family: "Inter Variable"
         font.pixelSize: 10
     }
     Text {
@@ -240,7 +235,6 @@ Item {
         visible: daemon.duration > 0
         text: page.formatTime(daemon.duration)
         color: Qt.rgba(1, 1, 1, 0.42)
-        font.family: "Inter Variable"
         font.pixelSize: 10
     }
 
@@ -271,7 +265,6 @@ Item {
         elide: Text.ElideRight
         text: daemon.title + (daemon.artist !== "" ? " \u2014 " + daemon.artist : "")
         color: Qt.rgba(1, 1, 1, 0.45)
-        font.family: "Inter Variable"
         font.pixelSize: 10
     }
 
@@ -292,7 +285,6 @@ Item {
             wrapMode: Text.WrapAnywhere
             text: modelData.text
             color: index === page.currentLine ? "#ffffff" : Qt.rgba(1, 1, 1, 0.38)
-            font.family: "Inter Variable"
             font.pixelSize: index === page.currentLine ? 15 : 12
             font.weight: index === page.currentLine ? Font.DemiBold : Font.Normal
 
@@ -343,7 +335,6 @@ Item {
             }
         }
         color: Qt.rgba(1, 1, 1, 0.35)
-        font.family: "Inter Variable"
         font.pixelSize: 12
     }
 }
