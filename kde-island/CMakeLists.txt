@@ -19,12 +19,16 @@ find_package(PkgConfig REQUIRED)
 pkg_check_modules(GIO REQUIRED gio-2.0)
 
 find_package(LayerShellQt QUIET)
+# Optional: the Super+V global shortcut (KF5 GlobalAccel). Without it the
+# island builds and runs, only the shortcut is missing.
+find_package(KF5GlobalAccel QUIET)
 
 add_executable(isle-island
     src/main.cpp
     src/spring.cpp
     src/daemonclient.cpp
     src/windowbackend.cpp
+    src/globalhotkey.cpp
     qml/qml.qrc
 )
 
@@ -47,6 +51,14 @@ target_link_libraries(isle-island PRIVATE
 
 if(LayerShellQt_FOUND)
     target_link_libraries(isle-island PRIVATE LayerShellQt::Interface)
+endif()
+
+if(KF5GlobalAccel_FOUND)
+    target_compile_definitions(isle-island PRIVATE HAVE_KGLOBALACCEL)
+    target_link_libraries(isle-island PRIVATE KF5::GlobalAccel)
+    message(STATUS "KGlobalAccel found: Super+V enabled")
+else()
+    message(WARNING "KGlobalAccel not found: the Super+V shortcut is disabled")
 endif()
 
 install(TARGETS isle-island RUNTIME DESTINATION bin)

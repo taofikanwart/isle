@@ -1,0 +1,16 @@
+[Desktop Entry]
+Type=Application
+Name=Isle
+GenericName=Island for KDE
+Comment=The notch at the top of the screen: music, timer, reminders, clipboard and calendar
+Exec=@BINDIR@/isle-island
+Icon=@ICON@
+Terminal=false
+Categories=Utility;
+Keywords=island;notch;clipboard;timer;music;
+OnlyShowIn=KDE;
+X-KDE-StartupNotify=false
+# Autostart entries are read from ~/.config/autostart; the launcher copy
+# ignores this key and shows up in the menu normally.
+X-GNOME-Autostart-enabled=true
+NoDisplay=@NODISPLAY@

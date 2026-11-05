@@ -1,5 +1,0 @@
-<RCC>
-    <qresource prefix="/">
-        <file>Spike.qml</file>
-    </qresource>
-</RCC>

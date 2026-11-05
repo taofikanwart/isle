@@ -1,0 +1,20 @@
+[Unit]
+Description=Isle island for KDE Plasma
+Documentation=file://%h/.local/share/doc/isle/README.md
+PartOf=graphical-session.target
+After=graphical-session.target isled.service
+# A crash loop slows down instead of giving up for good.
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+ExecStart=@BINDIR@/isle-island
+Restart=on-failure
+RestartSec=2
+RestartSteps=8
+RestartMaxDelaySec=60
+# Few malloc arenas: it mostly waits for frames and D-Bus.
+Environment=MALLOC_ARENA_MAX=2
+
+[Install]
+WantedBy=graphical-session.target

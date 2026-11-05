@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- SPDX-License-Identifier: GPL-3.0-or-later -->
+<!-- The launcher icon: a dark rounded tile with the island's notch cut into
+     its top edge, the shape the app draws over the screen. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
+  <rect width="64" height="64" rx="14" fill="#1c1c1e"/>
+  <path d="M20 0h24c0 7-5 11-12 11S20 7 20 0z" fill="#ffffff"/>
+  <rect x="14" y="26" width="36" height="3.5" rx="1.75" fill="#ffffff" opacity="0.85"/>
+  <rect x="14" y="36" width="26" height="3.5" rx="1.75" fill="#ffffff" opacity="0.55"/>
+  <rect x="14" y="46" width="31" height="3.5" rx="1.75" fill="#ffffff" opacity="0.35"/>
+</svg>

@@ -1,7 +1,10 @@
-# Isle KDE port — feasibility spike
+# Isle KDE port — feasibility spike results
 
-Throwaway code. It proves (or disproves) the layer-shell notch architecture
-before the real port starts. Nothing here ships.
+*The throwaway spike under `spike/` was deleted after these results; `kde-island/` replaced it.*
+
+The spike was a throwaway Qt5 + LayerShellQt app that proved the layer-shell
+notch architecture before real work started. It was deleted once the answers
+were in; `kde-island/` replaced it.
 
 Built for Qt5 + Plasma 5.27 (what this machine runs). The real port targets
 Qt6/KF6 with a Qt5 fallback while distros still ship Plasma 5.

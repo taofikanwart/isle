@@ -71,7 +71,26 @@ Item {
     readonly property real openHeight: topInset + pageHeight + bottomPadding
 
     property bool pointerIn: false
-    property bool open: backend.pointerQueryable ? pointerIn : hover.hovered
+    // Held open by the global shortcut for a few seconds, wherever the pointer is.
+    property bool forcedOpen: false
+    property bool open: forcedOpen || (backend.pointerQueryable ? pointerIn : hover.hovered)
+
+    Timer {
+        id: forcedTimer
+        interval: 8000
+        onTriggered: root.forcedOpen = false
+    }
+
+    Connections {
+        target: hotkey
+        function onClipsRequested() {
+            // Tab order: Music 0, Notifications 1, Timer 2, Reminders 3,
+            // Shelf (clipboard) 4, Calendar 5, Settings 6.
+            body.pageIndex = 4;
+            root.forcedOpen = true;
+            forcedTimer.restart();
+        }
+    }
 
     Timer {
         interval: 50

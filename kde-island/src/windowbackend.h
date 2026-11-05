@@ -19,8 +19,6 @@ class WindowBackend : public QObject {
     // How far the panel pushes the usable screen down at the top edge.
     Q_PROPERTY(int topInset READ topInset NOTIFY insetChanged)
     Q_PROPERTY(quintptr windowId READ windowId CONSTANT)
-    // Isle's default: the closed island sits inside the top bar like a notch.
-    Q_PROPERTY(bool inBar READ inBar CONSTANT)
     // Whether the global pointer can be read: true on X11, not on Wayland.
     Q_PROPERTY(bool pointerQueryable READ pointerQueryable CONSTANT)
 
@@ -32,7 +30,6 @@ public:
 
     int topInset() const { return m_topInset; }
     quintptr windowId() const;
-    bool inBar() const { return m_inBar; }
     bool pointerQueryable() const { return m_pointerQueryable; }
 
     // Whether the pointer is inside a rectangle of the window. Used for the
@@ -60,7 +57,6 @@ private:
     QWindow *m_window;
     QRegion m_mask;
     int m_topInset = 0;
-    bool m_inBar = true;
     bool m_pointerQueryable = false;
     bool m_layerShell = false;
 };

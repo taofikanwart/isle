@@ -2,6 +2,7 @@
 // Copyright (C) 2026 zickrian
 
 #include "daemonclient.h"
+#include "globalhotkey.h"
 #include "spring.h"
 #include "windowbackend.h"
 
@@ -46,12 +47,12 @@ int main(int argc, char *argv[]) {
     QFontDatabase::addApplicationFont(QStringLiteral(":/fonts/InterVariable.ttf"));
 
     // Claim the frontend name so isled's clipboard, assistant and agent
-    // methods answer us. First claim wins, like GNOME Shell's own name.
+    // methods answer us. First claim wins, like GNOME Shell's own name: a
+    // second island would paint a second notch, so it exits instead.
     QDBusConnection bus = QDBusConnection::sessionBus();
-    const bool claimed = bus.registerService(QString::fromLatin1(ISLAND_NAME));
-    if (!claimed) {
-        qWarning("isle-island: could not claim %s; guarded isled methods will "
-                 "refuse this frontend", ISLAND_NAME);
+    if (!bus.registerService(QString::fromLatin1(ISLAND_NAME))) {
+        qWarning("isle-island: another instance already holds %s", ISLAND_NAME);
+        return 1;
     }
 
     qmlRegisterType<Spring>("Isle", 1, 0, "Spring");
@@ -75,17 +76,16 @@ int main(int argc, char *argv[]) {
 
     DaemonClient daemon;
     view.rootContext()->setContextProperty(QStringLiteral("daemon"), &daemon);
-    // ISLE_THEME=glass gives the see-through look (theme.js); black is Isle's
-    // own default.
-    view.rootContext()->setContextProperty(
-        QStringLiteral("initialTheme"),
-        qEnvironmentVariable("ISLE_THEME", "black"));
     view.rootContext()->setContextProperty(QStringLiteral("backend"), &backend);
 
     // Must exist before the QML is created: a context property added later is
     // invisible to items already instantiated.
     FrameClock frames;
     view.rootContext()->setContextProperty(QStringLiteral("frames"), &frames);
+
+    // Super+V opens the clipboard; registered once the QML can hear it.
+    GlobalHotkey hotkey;
+    view.rootContext()->setContextProperty(QStringLiteral("hotkey"), &hotkey);
 
     view.setSource(QUrl(QStringLiteral("qrc:/Island.qml")));
     if (view.rootObject() == nullptr)
@@ -102,6 +102,8 @@ int main(int argc, char *argv[]) {
             qInfo("F %lld", now);
         frames.tick(dt);
     });
+
+    hotkey.registerShortcut();
 
     view.show();
     return app.exec();

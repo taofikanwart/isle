@@ -17,8 +17,6 @@
 WindowBackend::WindowBackend(QWindow *window, QObject *parent)
     : QObject(parent), m_window(window) {
     connect(m_window, &QWindow::screenChanged, this, &WindowBackend::measureInset);
-    // ISLE_IN_BAR=0 hangs the closed island below the bar instead.
-    m_inBar = qEnvironmentVariable("ISLE_IN_BAR", "1") != QLatin1String("0");
     // Wayland does not let a client read the global pointer.
     const bool wayland =
         qgetenv("XDG_SESSION_TYPE") == QByteArrayLiteral("wayland") ||
