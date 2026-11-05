@@ -246,10 +246,9 @@ Item {
         var rest = total % 60;
         return minutes + ":" + (rest < 10 ? "0" : "") + rest;
     }
-}
 
-// --- the lyrics, over the page while shown ---------------------------------
-Item {
+    // --- the lyrics, over the page while shown ---------------------------------
+    Item {
     id: lyricsView
     anchors.fill: parent
     visible: page.showLyrics
@@ -337,4 +336,5 @@ Item {
         color: Qt.rgba(1, 1, 1, 0.35)
         font.pixelSize: 12
     }
+}
 }
