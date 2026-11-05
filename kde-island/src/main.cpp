@@ -62,9 +62,11 @@ int main(int argc, char *argv[]) {
     WindowBackend backend(&view);
     backend.attach();
 
-    // Without a compositor positioning us, centre on the screen ourselves.
+    // Without a compositor positioning us, centre on the primary screen ourselves.
+    // view.screen() can be a secondary monitor whose top is not 0, which put
+    // the notch in the middle of the desktop instead of at the top.
     if (!backend.layerShell()) {
-        if (QScreen *screen = view.screen()) {
+        if (QScreen *screen = QGuiApplication::primaryScreen()) {
             const QRect full = screen->geometry();
             view.setPosition(full.x() + (full.width() - WINDOW_WIDTH) / 2, full.y());
         }
