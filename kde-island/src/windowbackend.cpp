@@ -151,8 +151,12 @@ void WindowBackend::setTargetScreenIndex(int index) {
 
 QStringList WindowBackend::screenNames() const {
     QStringList names;
-    for (QScreen *s : QGuiApplication::screens())
-        names.append(QStringLiteral("%1 (%2x%3)").arg(s->name()).arg(s->geometry().width()).arg(s->geometry().height()));
+    for (QScreen *s : QGuiApplication::screens()) {
+        QString label = QStringLiteral("%1 (%2x%3)").arg(s->name()).arg(s->geometry().width()).arg(s->geometry().height());
+        if (s == QGuiApplication::primaryScreen())
+            label += QStringLiteral("  (primary)");
+        names.append(label);
+    }
     return names;
 }
 

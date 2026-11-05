@@ -88,11 +88,13 @@ void DaemonClient::loadSettings() {
         // Default to the topmost screen: that is where the eye goes, and on a
         // laptop-with-external-monitor setup it is not Qt's "primary" (the
         // laptop panel, below it).
+        // Default to Qt's primary screen, as the user asked. On a
+        // laptop-with-external-monitor setup that is the laptop panel; use
+        // Settings -> Display to move it to the other screen.
         const auto screens = QGuiApplication::screens();
-        int best = 0, minY = INT_MAX;
+        int best = 0;
         for (int i = 0; i < screens.size(); ++i) {
-            int y = screens.at(i)->geometry().top();
-            if (y < minY) { minY = y; best = i; }
+            if (screens.at(i) == QGuiApplication::primaryScreen()) { best = i; break; }
         }
         m_monitorIndex = best;
         saveSettings();
