@@ -6,6 +6,7 @@
 #include <QDBusMessage>
 #include <QObject>
 #include <QSettings>
+#include <QScreen>
 #include <QString>
 #include <QVariantList>
 

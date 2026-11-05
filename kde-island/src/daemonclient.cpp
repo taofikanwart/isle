@@ -14,6 +14,7 @@
 #include <QDBusReply>
 #include <QDateTime>
 #include <QGuiApplication>
+#include <climits>
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
@@ -82,7 +83,22 @@ void DaemonClient::loadSettings() {
     m_inBar = s.value(QStringLiteral("inBar"), true).toBool();
     m_notchDepth = s.value(QStringLiteral("notchDepth"), 30).toInt();
     m_doNotDisturb = s.value(QStringLiteral("doNotDisturb"), false).toBool();
-    m_monitorIndex = s.value(QStringLiteral("monitorIndex"), 0).toInt();
+    int stored = s.value(QStringLiteral("monitorIndex"), -1).toInt();
+    if (stored < 0) {
+        // Default to the topmost screen: that is where the eye goes, and on a
+        // laptop-with-external-monitor setup it is not Qt's "primary" (the
+        // laptop panel, below it).
+        const auto screens = QGuiApplication::screens();
+        int best = 0, minY = INT_MAX;
+        for (int i = 0; i < screens.size(); ++i) {
+            int y = screens.at(i)->geometry().top();
+            if (y < minY) { minY = y; best = i; }
+        }
+        m_monitorIndex = best;
+        saveSettings();
+    } else {
+        m_monitorIndex = stored;
+    }
 }
 
 void DaemonClient::saveSettings() {

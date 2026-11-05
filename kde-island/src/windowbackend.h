@@ -33,6 +33,7 @@ public:
     bool pointerQueryable() const { return m_pointerQueryable; }
     int targetScreenIndex() const { return m_targetScreenIndex; }
     void setTargetScreenIndex(int index);
+    Q_INVOKABLE void setTargetScreen(int index) { setTargetScreenIndex(index); }
     QStringList screenNames() const;
 
     // Whether the pointer is inside a rectangle of the window. Used for the

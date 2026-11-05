@@ -23,12 +23,8 @@ Item {
             Theme.setTheme(daemon.themeName, daemon.glassTint);
             notch.themeName = daemon.themeName;
             notch.tint = daemon.glassTint;
-            backend.targetScreenIndex = daemon.monitorIndex;
+            backend.setTargetScreen(daemon.monitorIndex);
         }
-    }
-
-    Component.onCompleted: {
-        backend.targetScreenIndex = daemon.monitorIndex;
     }
 
     // --- ported constants --------------------------------------------------
@@ -233,6 +229,7 @@ Item {
     }
     Component.onCompleted: {
         Theme.setTheme(root.themeName, root.tint);
+        backend.setTargetScreen(daemon.monitorIndex);
         applyMask(false);
     }
 

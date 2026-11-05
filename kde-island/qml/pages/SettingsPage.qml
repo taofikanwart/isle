@@ -236,7 +236,10 @@ Item {
                 height: 28
                 model: backend.screenNames
                 currentIndex: daemon.monitorIndex
-                onActivated: daemon.monitorIndex = currentIndex
+                onActivated: {
+                    daemon.monitorIndex = currentIndex;
+                    backend.setTargetScreen(daemon.monitorIndex);
+                }
 
                 background: Rectangle {
                     radius: 14
