@@ -16,7 +16,9 @@
 
 WindowBackend::WindowBackend(QWindow *window, QObject *parent)
     : QObject(parent), m_window(window) {
-    connect(m_window, &QWindow::screenChanged, this, &WindowBackend::measureInset);
+    connect(m_window, &QWindow::screenChanged, this, &WindowBackend::applyScreen);
+    connect(qApp, &QGuiApplication::screenAdded, this, &WindowBackend::applyScreen);
+    connect(qApp, &QGuiApplication::screenRemoved, this, &WindowBackend::applyScreen);
     // Wayland does not let a client read the global pointer.
     const bool wayland =
         qgetenv("XDG_SESSION_TYPE") == QByteArrayLiteral("wayland") ||
@@ -59,11 +61,47 @@ void WindowBackend::attach() {
                            Qt::X11BypassWindowManagerHint);
     }
 
+    applyScreen();
+}
+
+void WindowBackend::applyScreen() {
+    if (!m_window)
+        return;
+    const auto screens = QGuiApplication::screens();
+    if (screens.isEmpty())
+        return;
+    int idx = qBound(0, m_targetScreenIndex, screens.size() - 1);
+    m_targetScreenIndex = idx;
+    QScreen *screen = screens.at(idx);
+
+    // Layer-shell: tell it which output to live on.
+#ifdef HAVE_LAYERSHELL
+    if (m_layerShell) {
+        if (auto *layer = LayerShellQt::Window::get(m_window))
+            layer->setDesiredOutput(screen);
+    } else {
+        m_window->setScreen(screen);
+    }
+#else
+    m_window->setScreen(screen);
+#endif
+
+    // Position at the top centre of the chosen screen (X11 fallback).
+    if (!m_layerShell) {
+        const QRect full = screen->geometry();
+        m_window->setPosition(full.x() + (full.width() - m_window->width()) / 2, full.y());
+    }
+
     measureInset();
+    emit targetScreenChanged();
+    emit screensChanged();
 }
 
 void WindowBackend::measureInset() {
-    QScreen *screen = m_window ? m_window->screen() : QGuiApplication::primaryScreen();
+    const auto screens = QGuiApplication::screens();
+    QScreen *screen = (m_targetScreenIndex >= 0 && m_targetScreenIndex < screens.size())
+                          ? screens.at(m_targetScreenIndex)
+                          : QGuiApplication::primaryScreen();
     if (!screen)
         return;
     // A panel at the top edge shrinks the available geometry; the difference
@@ -102,6 +140,20 @@ void WindowBackend::grabKeyboardFocus() {
             XCloseDisplay(dpy);
         }
     }
+}
+
+void WindowBackend::setTargetScreenIndex(int index) {
+    if (index == m_targetScreenIndex)
+        return;
+    m_targetScreenIndex = index;
+    applyScreen();
+}
+
+QStringList WindowBackend::screenNames() const {
+    QStringList names;
+    for (QScreen *s : QGuiApplication::screens())
+        names.append(QStringLiteral("%1 (%2x%3)").arg(s->name()).arg(s->geometry().width()).arg(s->geometry().height()));
+    return names;
 }
 
 void WindowBackend::setInputMask(int x, int y, int width, int height) {

@@ -31,6 +31,9 @@ public:
     int topInset() const { return m_topInset; }
     quintptr windowId() const;
     bool pointerQueryable() const { return m_pointerQueryable; }
+    int targetScreenIndex() const { return m_targetScreenIndex; }
+    void setTargetScreenIndex(int index);
+    QStringList screenNames() const;
 
     // Whether the pointer is inside a rectangle of the window. Used for the
     // open/close test: a shape-mask change makes X send a spurious leave, so
@@ -50,13 +53,17 @@ public:
 
 signals:
     void insetChanged();
+    void targetScreenChanged();
+    void screensChanged();
 
 private:
     void measureInset();
+    void applyScreen();
 
     QWindow *m_window;
     QRegion m_mask;
     int m_topInset = 0;
     bool m_pointerQueryable = false;
+    int m_targetScreenIndex = 0;
     bool m_layerShell = false;
 };

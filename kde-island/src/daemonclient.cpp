@@ -82,6 +82,7 @@ void DaemonClient::loadSettings() {
     m_inBar = s.value(QStringLiteral("inBar"), true).toBool();
     m_notchDepth = s.value(QStringLiteral("notchDepth"), 30).toInt();
     m_doNotDisturb = s.value(QStringLiteral("doNotDisturb"), false).toBool();
+    m_monitorIndex = s.value(QStringLiteral("monitorIndex"), 0).toInt();
 }
 
 void DaemonClient::saveSettings() {
@@ -91,6 +92,7 @@ void DaemonClient::saveSettings() {
     s.setValue(QStringLiteral("inBar"), m_inBar);
     s.setValue(QStringLiteral("notchDepth"), m_notchDepth);
     s.setValue(QStringLiteral("doNotDisturb"), m_doNotDisturb);
+    s.setValue(QStringLiteral("monitorIndex"), m_monitorIndex);
 }
 
 void DaemonClient::setThemeName(const QString &val) {
@@ -122,6 +124,14 @@ void DaemonClient::setDoNotDisturb(bool val) {
     if (m_doNotDisturb == val)
         return;
     m_doNotDisturb = val;
+    saveSettings();
+    emit settingsChanged();
+}
+
+void DaemonClient::setMonitorIndex(int val) {
+    if (m_monitorIndex == val)
+        return;
+    m_monitorIndex = val;
     saveSettings();
     emit settingsChanged();
 }

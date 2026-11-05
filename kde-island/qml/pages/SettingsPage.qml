@@ -5,6 +5,7 @@
 // Settings are persisted in ~/.config/isle/island.conf via QSettings.
 
 import QtQuick 2.15
+import QtQuick.Controls 2.15
 
 Item {
     id: page
@@ -208,6 +209,45 @@ Item {
                     color: dPlusTap.pressed ? Qt.rgba(1, 1, 1, 0.2) : Qt.rgba(1, 1, 1, 0.08)
                     Text { anchors.centerIn: parent; text: "+"; color: "white"; font.pixelSize: 13 }
                     TapHandler { id: dPlusTap; onTapped: daemon.notchDepth = Math.min(50, daemon.notchDepth + 2) }
+                }
+            }
+        }
+
+
+        // --- Display (monitor) -------------------------------------------------
+        Item {
+            width: parent.width
+            height: 32
+
+            Text {
+                anchors.left: parent.left
+                anchors.verticalCenter: parent.verticalCenter
+                text: "Display (monitor)"
+                color: "white"
+                font.pixelSize: 13
+                font.weight: Font.Medium
+            }
+
+            ComboBox {
+                id: displayCombo
+                anchors.right: parent.right
+                anchors.verticalCenter: parent.verticalCenter
+                width: 160
+                height: 28
+                model: backend.screenNames
+                currentIndex: daemon.monitorIndex
+                onActivated: daemon.monitorIndex = currentIndex
+
+                background: Rectangle {
+                    radius: 14
+                    color: Qt.rgba(1, 1, 1, 0.10)
+                }
+                contentItem: Text {
+                    leftPadding: 12
+                    verticalAlignment: Text.AlignVCenter
+                    text: displayCombo.displayText
+                    color: "white"
+                    font.pixelSize: 12
                 }
             }
         }
