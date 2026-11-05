@@ -9,7 +9,7 @@ import QtQuick 2.15
 Item {
     id: page
 
-    readonly property real padding: 18
+    readonly property real padding: 24
 
     // Selected and display date state
     property var selectedDate: new Date()
@@ -239,6 +239,7 @@ Item {
 
                 Rectangle {
                     anchors.right: parent.right
+                    anchors.rightMargin: 6
                     anchors.verticalCenter: parent.verticalCenter
                     width: 48
                     height: 20

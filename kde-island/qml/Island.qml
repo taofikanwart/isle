@@ -36,7 +36,7 @@ Item {
     readonly property real expandedRadius: 32
     readonly property real expandedShoulder: 22
     readonly property real expandedWidth: 600
-    readonly property real pageHeight: 150
+    readonly property real pageHeight: 175
     readonly property real bottomPadding: 20
 
     readonly property int topInset: backend.topInset
