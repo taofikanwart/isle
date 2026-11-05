@@ -12,10 +12,17 @@ Item {
 
     readonly property real padding: 20
 
-    Column {
+    Flickable {
         anchors.fill: parent
-        anchors.margins: page.padding
-        spacing: 12
+        contentWidth: width
+        contentHeight: innerCol.implicitHeight + 2 * page.padding
+        clip: true
+
+        Column {
+            id: innerCol
+            x: page.padding
+            width: parent.width - 2 * page.padding
+            spacing: 12
 
         // --- Theme selector ------------------------------------------------
         Item {

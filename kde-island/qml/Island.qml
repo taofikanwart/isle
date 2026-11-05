@@ -506,11 +506,13 @@ Item {
         }
 
         // Open: the active page, below the band the top bar occupies.
+        // A little padding top and bottom keeps the page out of the notch's
+        // rounded corners and the tab row above it.
         Loader {
             x: 0
-            y: root.topInset
+            y: root.topInset + 4
             width: body.width
-            height: Math.max(0, body.height - root.topInset)
+            height: Math.max(0, body.height - root.topInset - 14)
             visible: root.progress >= 0.5
             opacity: (root.progress - 0.5) * 2
             source: body.pageSources[body.pageIndex]
