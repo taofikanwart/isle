@@ -70,6 +70,17 @@ void WindowBackend::applyScreen() {
     const auto screens = QGuiApplication::screens();
     if (screens.isEmpty())
         return;
+    // A screen we picked earlier may be gone (HDMI unplugged): fall back to
+    // the primary instead of silently landing on whatever is left.
+    if (m_targetScreenIndex < 0 || m_targetScreenIndex >= screens.size()) {
+        for (int i = 0; i < screens.size(); ++i) {
+            if (screens.at(i) == QGuiApplication::primaryScreen()) {
+                m_targetScreenIndex = i; break;
+            }
+        }
+        if (m_targetScreenIndex < 0 || m_targetScreenIndex >= screens.size())
+            m_targetScreenIndex = 0;
+    }
     int idx = qBound(0, m_targetScreenIndex, screens.size() - 1);
     m_targetScreenIndex = idx;
     QScreen *screen = screens.at(idx);
