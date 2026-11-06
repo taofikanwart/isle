@@ -40,6 +40,9 @@ Item {
     readonly property real bottomPadding: 20
 
     readonly property int topInset: backend.topInset
+    // When no panel is detected (topInset 0) the header still needs room,
+    // otherwise the tabs vanish into a zero-height band.
+    readonly property int effectiveTopInset: (topInset > 0) ? topInset : 32
 
     // Notification banner alert state (when notch is closed)
     property bool bannerAlert: false
@@ -71,7 +74,7 @@ Item {
         : (compactWidth + (daemon.playing ? 140 : 0) + (daemon.pomodoroRunning ? 40 : 0))
     readonly property real closedHeight: (inBar && topInset > 0)
         ? topInset : topInset + notchDepth
-    readonly property real openHeight: topInset + pageHeight + bottomPadding
+    readonly property real openHeight: Math.max(topInset, 32) + pageHeight + bottomPadding
 
     property bool pointerIn: false
     // Held open by the global shortcut for a few seconds, wherever the pointer is.
@@ -360,7 +363,7 @@ Item {
             x: 16
             y: 0
             width: body.width - 32
-            height: root.topInset
+            height: root.effectiveTopInset
             visible: root.progress >= 0.5
             opacity: (root.progress - 0.5) * 2
 
@@ -510,9 +513,9 @@ Item {
         // rounded corners and the tab row above it.
         Loader {
             x: 0
-            y: root.topInset + 4
+            y: root.effectiveTopInset + 4
             width: body.width
-            height: Math.max(0, body.height - root.topInset - 14)
+            height: Math.max(0, body.height - root.effectiveTopInset - 14)
             visible: root.progress >= 0.5
             opacity: (root.progress - 0.5) * 2
             source: body.pageSources[body.pageIndex]
